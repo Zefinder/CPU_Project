@@ -1,5 +1,4 @@
 library ieee;
-library memory_lib;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
@@ -8,35 +7,28 @@ end entity memory_test;
 
 architecture testbench of memory_test is
 
-    component memory
-        generic(
-            chunk_address_size : natural := 8;
-            cell_address_size  : natural := 8;
-            data_size          : natural := 8
-        );
+    constant address_size : natural := 16;
+    constant data_size : natural := 8;
+
+    component ram_memory
         port(
             clk       : in  std_logic;
             write     : in  std_logic;
-            address   : in  std_logic_vector(chunk_address_size + cell_address_size - 1 downto 0);
+            address   : in  std_logic_vector(address_size - 1 downto 0);
             value_in  : in  std_logic_vector(data_size - 1 downto 0);
             value_out : out std_logic_vector(data_size - 1 downto 0)
         );
-    end component memory;
-    for all : memory use entity memory_lib.memory(RTL);
+    end component ram_memory;
+    for all : ram_memory use entity work.ram_memory(RTL);
 
     signal clk       : std_logic                     := '0';
     signal write     : std_logic                     := '0';
-    signal address   : std_logic_vector(15 downto 0) := x"0000";
-    signal value_in  : std_logic_vector(7 downto 0)  := x"00";
-    signal value_out : std_logic_vector(7 downto 0); -- @suppress "signal value_out is never read"
+    signal address   : std_logic_vector(address_size - 1 downto 0) := x"0000";
+    signal value_in  : std_logic_vector(data_size - 1 downto 0)  := x"00";
+    signal value_out : std_logic_vector(data_size - 1 downto 0); -- @suppress "signal value_out is never read"
 begin
 
-    memory_inst : component memory
-        generic map(
-            chunk_address_size => 8,
-            cell_address_size  => 8,
-            data_size          => 8
-        )
+    memory_inst : component ram_memory
         port map(
             clk       => clk,
             write     => write,

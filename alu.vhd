@@ -10,7 +10,7 @@ entity alu is
 
     port(
         a, b     : in  std_logic_vector(data_size - 1 downto 0); -- Operand of the ALU 
-        selector : in  std_logic_vector(2 downto 0);
+        selector : in  std_logic_vector(2 downto 0); -- Selector of the operation to use
         c_in     : in  std_logic;       -- Input carry for addition and subtraction
         flags    : out std_logic_vector(3 downto 0); -- Output flags (in order: C, Z, N, O)
         output   : out std_logic_vector(data_size - 1 downto 0) -- Output of the ALU
