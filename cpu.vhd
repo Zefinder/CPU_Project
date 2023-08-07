@@ -2,6 +2,16 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+-- This entity represents the global supercomponent CPU. It will instantiate all
+-- generics of all defined components and is basically the top level of this project.
+--
+-- A few things must still be discussed with myself (or with Nicolas because he has good ideas) 
+-- regarding the input and outputs. For the input, I would be suggesting to make an instruction
+-- memory in the CPU as a cached program but it will be impossible to make tests on it without
+-- modifying directly the component and the constant array of instructions.
+--
+-- For the output, I think that pointing to the first register's output can be a good idea, 
+-- like for functions in assembly where the result will be contained in `R0`.
 entity cpu is
     port(
         -- Main clock
@@ -176,6 +186,8 @@ begin
 
     output <= alu_output;
 
+    -- Instantiation of the control unit, it is linked to the ALU, register bank, 
+    -- flag bank and RAM
     control_unit_inst : component control_unit
         generic map(
             -- Size of an instruction
@@ -224,6 +236,7 @@ begin
             write_ram               => write_ram
         );
 
+    -- Instantiation of the ALU, it is linked to the flag and register banks and the RAM
     alu_inst : component alu
         generic map(
             -- Size of data and addresses
@@ -244,6 +257,7 @@ begin
             output   => alu_output
         );
 
+    -- Instantiation of the flag bank, it is linked to the ALU (TODO jump unit)
     flag_bank_inst : component flag_bank
         generic map(
             -- Size of the flag selector
@@ -261,7 +275,8 @@ begin
             -- Output the flag chosen by the selector
             output_flag   => flag_output
         );
-
+    
+    -- Instantiation of the register bank, it is linked to the ALU and the RAM memory
     register_bank_inst : component register_bank
         generic map(
             -- Size of data
@@ -270,25 +285,40 @@ begin
             register_selector_size => register_selector_size
         )
         port map(
+            -- Clock used to update the register
             clk                     => clk,
+            -- Address for the first output
             register_address_read_1 => register_address_read_1,
+            -- Address for the second output
             register_address_read_2 => register_address_read_2,
+            -- Address for writing in the register bank
             register_address_write  => register_address_write,
+            -- Data to write in the register bank 
             register_load           => register_load,
+            -- Enables writing in the register
             write_register          => write_register,
+            -- First register output
             register_output_1       => register_operand_1,
+            -- Second register output
             register_output_2       => register_operand_2
         );
 
+    -- Instantiation of the RAM, it is linked to the register bank
     ram_memory_inst : component ram_memory
         generic map(
+            -- Size of data and addresses
             data_size => data_size
         )
         port map(
+            -- Clock used to update RAM cells
             clk       => clk,
+            -- Enables writing in the RAM
             write     => write_ram,
+            -- Address of cell to write or to read
             address   => ram_address,
+            -- Data to write in the RAM
             value_in  => ram_load,
+            -- Output of the RAM
             value_out => ram_output
         );
 
