@@ -4,7 +4,7 @@ use ieee.numeric_std.all;
 
 entity flag_bank is
     generic(
-                -- Size of the flag selector
+        -- Size of the flag selector
         flag_selector_size     : natural := 2
     );
     port(
@@ -23,7 +23,7 @@ end entity flag_bank;
 
 architecture RTL of flag_bank is
     -- Memory of flags
-    signal flags : std_logic_vector(2 ** flag_selector_size downto 0);
+    signal flags : std_logic_vector(2 ** flag_selector_size - 1 downto 0);
 begin
     
     flags_update_process : process(clk) is

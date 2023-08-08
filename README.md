@@ -11,7 +11,7 @@ This CPU has a few components. The one that are ok are marked with (\/) currentl
 
 - ALU				(\/)
 - Register bank 	(+)
-- Flag bank			(+)
+- Flag bank			(\/)
 - Branching unit	(#) 
 - RAM memory		(+)($)
 
