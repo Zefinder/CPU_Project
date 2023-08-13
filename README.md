@@ -10,10 +10,12 @@ I will probably make a compiler, an interpreter and documentation of this CPU so
 This CPU has a few components. The one that are ok are marked with (\/) currently developped are marked with (\*), the ones that are developped but where tests are lacking or are simply not implemented are marked with (+), the ones that still need to be developped are marked with (#) and finally the ones that will be improved are marked with ($).
 
 - ALU				(\/)
-- Register bank 	(+)
+- Register bank 	(\/)
 - Flag bank			(\/)
 - Branching unit	(#) 
-- RAM memory		(+)($)
+- RAM memory		(\/)($)
+- Control unit      (#)
+- CPU as a whole    (#)
 
 The further developpement I can see is to find an FPGA where you can plug a mass memory to store programs on and configure the FPGA to start on a specific address of the memory to run a specific program. This configuration will load the program into the CPU instruction memory and then launch it. It will make the CPU easier to use (not modifying the constant array each time! Efficiency go brrr). Hence the few other components I see to add:
 
