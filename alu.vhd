@@ -24,10 +24,14 @@ architecture RTL of alu is
     constant N : natural := 2;          -- Selector for N flag (negative)
     constant O : natural := 3;          -- Selector for O flag (overflow)
 
-    constant zero_signal : std_logic_vector(output'length - 1 downto 0) := (others => '0'); -- Used as padding for multiplication
+    -- Used as padding for multiplication
+    constant zero_signal : std_logic_vector(output'length - 1 downto 0) := (others => '0');
 
+    -- Result of operations of the ALU. Bigger than output since multiplication 
+    -- can go to 2 times the size of the input
     signal temp_output : std_logic_vector(2 * output'length - 1 downto 0);
 
+    -- Adds padding to the input std_logic_vector
     function add_padding(std_vector : std_logic_vector(data_size - 1 downto 0)) return std_logic_vector is
     begin
         return zero_signal & std_vector;

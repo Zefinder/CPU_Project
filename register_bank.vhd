@@ -4,7 +4,9 @@ use ieee.numeric_std.all;
 
 entity register_bank is
     generic(
+        -- Size of the input and output data
         data_size              : natural := 8;
+        -- Size of the register selector
         register_selector_size : natural := 4
     );
     port(
@@ -28,13 +30,16 @@ entity register_bank is
 end entity register_bank;
 
 architecture RTL of register_bank is
-    -- TODO To be moved in a lib
+    -- TODO To be moved in a lib.
+    -- Array of std_logic used to store data
     type t_register_array is array (natural range <>) of std_logic_vector(data_size - 1 downto 0);
+    
     -- Array of registers
     signal register_array : t_register_array(2 ** register_selector_size - 1 downto 0) := (others => x"00");
 begin
 
-    -- Writing __register_load__ to the register given by the address __register_address_write__ when write is up and clock
+    -- Writing __register_load__ to the register given by the address
+    -- __register_address_write__ when write is up and clock
     write_register_process : process(clk) is
     begin
         if rising_edge(clk) and write_register = '1' then

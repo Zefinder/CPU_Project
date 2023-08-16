@@ -2,7 +2,9 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+-- TODO Remove generics, no need to have generics since the CU is static!
 entity control_unit is
+
     generic(
         -- Size of an instruction
         instruction_size       : natural := 32;
@@ -16,7 +18,7 @@ entity control_unit is
         flag_selector_size     : natural := 2
     );
     port(
-        -- Contains the instruction
+        -- Contains the instruction to process, 4 bytes (opcode-A-B-address)
         instruction_vector      : in  std_logic_vector(instruction_size - 1 downto 0);
         -- First operand to give to the ALU
         operand1                : out std_logic_vector(data_size - 1 downto 0);
@@ -32,7 +34,7 @@ entity control_unit is
         register_address_write  : out std_logic_vector(register_selector_size - 1 downto 0);
         -- Address used to read a flag
         flag_address            : out std_logic_vector(flag_selector_size - 1 downto 0);
-        -- Address used to read in the RAM
+        -- Address used to read and write in the RAM
         ram_address             : out std_logic_vector(data_size - 1 downto 0);
         -- Uses the result of the ALU
         use_alu                 : out std_logic;
@@ -51,8 +53,35 @@ entity control_unit is
     );
 end entity control_unit;
 
+-- Division of opcode (instruction[0;7])
+-- 
+-- 
 architecture RTL of control_unit is
+    constant ALU_BIT : natural := 3;
+
+    -- Opcode of the instruction, it has the information of the instruction and the addressing mode
+    signal instruction_opcode : std_logic_vector(7 downto 0);
+
+    -- First operand of the instruction
+    signal instruction_a : std_logic_vector(7 downto 0);
+
+    -- Second operand of the instruction
+    signal instruction_b : std_logic_vector(7 downto 0);
+
+    -- Additionnal address in the instruction
+    signal instruction_address : std_logic_vector(7 downto 0);
 
 begin
+
+    control_unit_process : process is
+    begin
+        -- If the ALU is on, then you don't use the other opcode bits the same way
+        if instruction_opcode(ALU_BIT) = '1' then
+            
+            
+        else
+        end if;
+
+    end process control_unit_process;
 
 end architecture RTL;
