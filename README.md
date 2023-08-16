@@ -34,6 +34,137 @@ Yes this is perfect, so now you can map things to a bus, and so interract with t
 
 Or maybe make all registers the same size, I mean 16 bits is a lot and not hard to do but it takes a lot of space...
 
+## Configuration of the IDE
+I chose Sigasi Studio for my IDE since it's waaaaaaay better than Vivado or other tools that I've already tried. However it does not include a compiler nor a simulator nor anything to synthetise (or implement). It is possible to link one to Sigasi and this is the whole point of this paragraph (I'm organised!).
+
+### Compiler and simulator setup
+Sigasi have already options for loads of compilers and I chose **GHDL**, open source compiler written in ADA, which is available for both Windows and Linux. To setup GHDL for the compilation, go to **Window > Preferences** and then **Sigasi > Toolchains > GHDL**. Select the bin path of the GHDL directory and you will just have to launch the simulation from the Hierarchy View! *(Do not forget to set the correct unit as top level...)*.
+
+I also configured a simulation folder (named `simulation`) where all vcd files go. Here is the line I used to configure it like that:
+
+```
+--vcd='${sigasi_toplevel:project_path}/simulation/${sigasi_toplevel:short}.vcd'
+```
+
+Click on the **Toolchains** item in the tree and select **GHDL**. Please apply before closing...
+
+### Run setup
+It can also be a good idea to have something to read the vcd files (to see the trace of signals throughout the simulation) and this can be directly configured within Sigasi Studio. If you have Linux this is easy, just enter the command you want, if you have Windows... get prepared. Go to **Run > External Tools > External tools configuration** and create a new run configuration. 
+
+- For Windows
+You will have work to do to succeed but a way to do it is to use the Linux virtual machine for Windows (WSL) (If I find an easier way I'll put it also)
+
+In Windows Explorer, go to the `workspaceSigasi` directory, create a **batch** script (that I will call `simu.bat`) and put this (of course you can modify it...): 
+
+```batch
+@echo off
+rem ENTER YOUR PROJECT DIRECTORY NAME
+set DIR_NAME=CPU_Project
+
+rem ENTER YOUR BASH SCRIPT NAME (eg. simu.sh)
+set SCRIPT_NAME=simu.sh
+
+rem ENTER UNIX PATH TO WINDOWS
+set UNIX_C=/mnt/c
+
+rem TOUCH AND YOU ARE DEAD
+set SCRIPT_PATH=%cd%
+set SCRIPT_PATH=%SCRIPT_PATH:\=/%
+set SCRIPT_PATH=%UNIX_C%%SCRIPT_PATH:~2%
+bash -c "%SCRIPT_PATH%/%SCRIPT_NAME% \"%SCRIPT_PATH%/%DIR_NAME%/simulation/%1\""
+```
+
+Still in the same directory create a **bash** script (that I will call `simu.sh`). I will use gtk waves for it:
+
+```bash
+#!/usr/bin/bash
+echo "Launching wave simulation for $1"
+gtkwave "$1"
+```
+
+**WARNING** it can say that there is an error at line 1 with something like `#!/usr/bin/bash^M`. It's becase Unix does not use the same new lines, so in that case use Notepad++ to convert the file in Unix style: **Edit > EOL Conversion > Unix (LF)**.
+
+Return in the external tool configuration and in the **location** field you can put the full path to your **batch** script, in the **workspace location** field put the path to your `workspaceSigasi` and as argument put `${selected_resource_name}`.
+
+- Linux
+
+You can directly launch gtk waves or create a script if you want to do something else before (like deleting the file). Just be careful, `${selected_resource_name}` only give the file name (eg. `ram_memory_test.vcd`), not the full path! Try things I don't know, I'm a Windows user!
+
+### Troubleshooting
+- There is an error with gtkwaves
+I'm 100% sure you forgot to install gtkwaves, try to install it.
+
+- There is an error where it can't find the simulation folder when launching simulation
+Have you tried to create a `simulation` folder? 
+
+- I have the following error:
+```
+Unable to resource a selected resource:
+${selected_resource_name}
+```
+
+The `${selected_resource_name}` variable takes the name of the selected resource of the `Project Explorer` tree. Select a file and then you will be able to launch it! This deselection can happen when you delete a file or when you closed the `Project Explorer` tree view.
+
+- I have an error when I launch a file, gtk says : `Why: No such file or directory` but the file exist!
+
+Make sure you selected a file in the simulation directory and that this file is a `.vcd` file. Else it will search for your file in the `simulation` directory and not find it (normal!).
+
+- My .vcd file is going bigger and bigger and bigger, what the hell????
+
+VHDL is a great language and the simulation works well... maybe too well. I am not here to make a VHDL class, however you might not have:
+- A `wait` statement in all your processes
+- Stopped your simulation when you want to if it's made on purpose.
+
+Here is an example of a test that **will never stop**:
+
+```vhdl
+memory_test_process : process is
+begin
+    a <= x"00";
+    wait for 5 ns;
+    a <= x"10";
+    
+    wait;
+end process memory_test_process;
+
+clk_timing : process is
+    variable counter : natural := 0;
+
+begin
+    clk     <= not clk;
+    wait for 5 ns;
+end process clk_timing;
+```
+
+Here is an example of a test that **will stop**:
+
+```vhdl
+memory_test_process : process is
+begin
+    a <= x"00";
+    wait for 5 ns;
+    a <= x"10";
+    
+    wait;
+end process memory_test_process;
+
+clk_timing : process is
+    variable counter : natural := 0;
+
+begin
+    clk     <= not clk;
+    counter := counter + 1;
+    wait for 5 ns;
+
+    if counter = 10 then -- This will happen someday!
+        wait;
+    end if;
+
+end process clk_timing;
+```
+
+This goes to 1GB really fast, be carefull to not forget to stop the simulation!
+
 ## Why a CPU?
 Why not?
 
