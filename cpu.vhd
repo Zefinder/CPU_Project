@@ -23,6 +23,7 @@ entity cpu is
     );
 end entity cpu;
 
+-- FIXME Change all generics to nothing and use the utils package instead
 architecture RTL of cpu is
 
     -- Size of an instruction (must be a multiple of 4)

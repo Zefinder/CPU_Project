@@ -1,41 +1,29 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+library utils;
+use utils.cpu_utils.all;
 
--- TODO Remove generics, no need to have generics since the CU is static!
 entity control_unit is
-
-    generic(
-        -- Size of an instruction
-        instruction_size       : natural := 32;
-        -- Size of an data (data includes register size, operand size, addresses size)
-        data_size              : natural := 8;
-        -- Size of the ALU selector
-        alu_selector_size      : natural := 3;
-        -- Size of the register selector
-        register_selector_size : natural := 4;
-        -- Size of the flag selector
-        flag_selector_size     : natural := 2
-    );
     port(
         -- Contains the instruction to process, 4 bytes (opcode-A-B-address)
-        instruction_vector      : in  std_logic_vector(instruction_size - 1 downto 0);
+        instruction_vector      : in  std_logic_vector(INSTRUCTION_SIZE - 1 downto 0);
         -- First operand to give to the ALU
-        operand1                : out std_logic_vector(data_size - 1 downto 0);
+        operand1                : out std_logic_vector(DATA_SIZE - 1 downto 0);
         -- Second operand to give to the ALU
-        operand2                : out std_logic_vector(data_size - 1 downto 0);
+        operand2                : out std_logic_vector(DATA_SIZE - 1 downto 0);
         -- Selector of the ALU
-        alu_selector            : out std_logic_vector(alu_selector_size - 1 downto 0);
+        alu_selector            : out std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
         -- Address used to read a register (sends it to the first operand of the ALU)
-        register_address_read_1 : out std_logic_vector(register_selector_size - 1 downto 0);
+        register_address_read_1 : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
         -- Address used to read a register (sends it to the second operand of the ALU)
-        register_address_read_2 : out std_logic_vector(register_selector_size - 1 downto 0);
+        register_address_read_2 : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
         -- Address used to write in a register
-        register_address_write  : out std_logic_vector(register_selector_size - 1 downto 0);
+        register_address_write  : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
         -- Address used to read a flag
-        flag_address            : out std_logic_vector(flag_selector_size - 1 downto 0);
+        flag_address            : out std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
         -- Address used to read and write in the RAM
-        ram_address             : out std_logic_vector(data_size - 1 downto 0);
+        ram_address             : out std_logic_vector(DATA_SIZE - 1 downto 0);
         -- Uses the result of the ALU
         use_alu                 : out std_logic;
         -- Uses the content of a register and outputs it to the first output (specified by __register_address_read_1__)
@@ -55,31 +43,89 @@ end entity control_unit;
 
 -- Division of opcode (instruction[0;7])
 -- 
--- 
+-- TODO
 architecture RTL of control_unit is
-    constant ALU_BIT : natural := 3;
+    -- ALU opcode bits (still unused bit 6 and 7)
+
+    -- Bit that enables the ALU
+    constant ALU_EN_BIT    : natural := 3;
+    -- Bit representing the first ALU selector bit
+    constant ALU_SEL_0     : natural := 0;
+    -- Bit representing the second ALU selector bit
+    constant ALU_SEL_1     : natural := 1;
+    -- Bit representing the third ALU selector bit
+    constant ALU_SEL_2     : natural := 2;
+    -- Bit representing the usage of the first register
+    constant ALU_USE_REG_1 : natural := 4;
+    -- Bit representing the usage of the first register
+    constant ALU_USE_REG_2 : natural := 5;
+    -- TODO Bit that inputs the result of the ALU in the memory
 
     -- Opcode of the instruction, it has the information of the instruction and the addressing mode
-    signal instruction_opcode : std_logic_vector(7 downto 0);
-
+    signal instruction_opcode  : std_logic_vector(DATA_SIZE - 1 downto 0);
     -- First operand of the instruction
-    signal instruction_a : std_logic_vector(7 downto 0);
-
+    signal instruction_a       : std_logic_vector(DATA_SIZE - 1 downto 0);
     -- Second operand of the instruction
-    signal instruction_b : std_logic_vector(7 downto 0);
-
+    signal instruction_b       : std_logic_vector(DATA_SIZE - 1 downto 0);
     -- Additionnal address in the instruction
-    signal instruction_address : std_logic_vector(7 downto 0);
+    signal instruction_address : std_logic_vector(DATA_SIZE - 1 downto 0);
 
 begin
 
-    control_unit_process : process is
+    control_unit_process : process(instruction_a, instruction_b, instruction_opcode, instruction_address, instruction_vector) is
     begin
+        instruction_opcode  <= instruction_vector(4 * DATA_SIZE - 1 downto 3 * DATA_SIZE);
+        instruction_a       <= instruction_vector(3 * DATA_SIZE - 1 downto 2 * DATA_SIZE);
+        instruction_b       <= instruction_vector(2 * DATA_SIZE - 1 downto DATA_SIZE);
+        instruction_address <= instruction_vector(DATA_SIZE - 1 downto 0);
+
+        alu_selector <= instruction_opcode(ALU_SEL_2) & instruction_opcode(ALU_SEL_1) & instruction_opcode(ALU_SEL_0);
+
+        operand1 <= instruction_a;
+        operand2 <= instruction_b;
+
+        register_address_read_1 <= instruction_address(DATA_SIZE - 1 downto DATA_SIZE / 2);
+        register_address_read_2 <= instruction_address(DATA_SIZE / 2 - 1 downto 0);
+
+        ram_address <= instruction_address;
+
         -- If the ALU is on, then you don't use the other opcode bits the same way
-        if instruction_opcode(ALU_BIT) = '1' then
-            
-            
+        if instruction_opcode(ALU_EN_BIT) = '1' then
+            -- We use the ALU in ALU mode, yes you are not crazy
+            use_alu <= '1';
+
+            -- We use the ALU result for the register
+            use_memory_for_register <= '0';
+
+            -- We do not use the register for memory
+            use_register_for_memory <= '0';
+
+            -- We write in the register at the end of the ALU
+            write_register <= '1';
+
+            -- We don't write in the memory with the ALU (TODO need to change)
+            write_ram <= '0';
+
+            -- We put the flag at Carry for the ALU
+            flag_address <= FLAG_C_ADDR;
+
+            -- We use the first register output if the bit is set
+            use_register_1 <= instruction_opcode(ALU_USE_REG_1);
+
+            -- We use the second register output if the bit is set
+            use_register_2 <= instruction_opcode(ALU_USE_REG_2);
+
+            -- Get the address of the register to write
+            if instruction_opcode(ALU_USE_REG_1) = '1' and instruction_opcode(ALU_USE_REG_2) = '1' then
+                register_address_write <= instruction_b(DATA_SIZE - 1 downto DATA_SIZE / 2);
+            elsif instruction_opcode(ALU_USE_REG_1) = '1' and instruction_opcode(ALU_USE_REG_2) = '0' then
+                register_address_write <= instruction_address(DATA_SIZE / 2 - 1 downto 0);
+            else
+                register_address_write <= instruction_address(DATA_SIZE - 1 downto DATA_SIZE / 2);
+            end if;
         else
+            use_alu <= '0';
+
         end if;
 
     end process control_unit_process;

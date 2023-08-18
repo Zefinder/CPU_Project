@@ -2,6 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+-- TODO Remove generics, use cpu_utils, no need to have generics at all !
 entity ram_memory is
     generic (
         -- Size of an address and of a data

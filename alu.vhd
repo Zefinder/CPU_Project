@@ -1,9 +1,12 @@
 library ieee;
+library utils;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use utils.cpu_utils.all;
 
+-- TODO Remove generics, use cpu_utils, no need to have generics at all !
 entity alu is
-
+    
     generic(
         data_size : positive := 8       -- Size of the operands and of the output
     );
@@ -18,12 +21,6 @@ entity alu is
 end entity alu;
 
 architecture RTL of alu is
-
-    constant C : natural := 0;          -- Selector for C flag (carry)
-    constant Z : natural := 1;          -- Selector for Z flag (zero)
-    constant N : natural := 2;          -- Selector for N flag (negative)
-    constant O : natural := 3;          -- Selector for O flag (overflow)
-
     -- Used as padding for multiplication
     constant zero_signal : std_logic_vector(output'length - 1 downto 0) := (others => '0');
 
@@ -50,19 +47,19 @@ begin
         add_padding(a) when "111",      -- Comparation
         add_padding(zero_signal) when others;
 
-    flags(C) <= '1' when temp_output(output'length) = '1' and selector /= "111" else
-                '1' when temp_output(output'length - 1 downto 0) > zero_signal and temp_output(output'length - 1) /= '1' and selector = "111" else
-                '0';
+    flags(FLAG_C) <= '1' when temp_output(output'length) = '1' and selector /= "111" else
+                     '1' when temp_output(output'length - 1 downto 0) > zero_signal and temp_output(output'length - 1) /= '1' and selector = "111" else
+                     '0';
 
-    flags(Z) <= '1' when temp_output(output'length - 1 downto 0) = zero_signal else
-                '0';
+    flags(FLAG_Z) <= '1' when temp_output(output'length - 1 downto 0) = zero_signal else
+                     '0';
 
-    flags(N) <= '1' when temp_output(output'length - 1) = '1' else
-                '0';
+    flags(FLAG_N) <= '1' when temp_output(output'length - 1) = '1' else
+                     '0';
 
-    flags(O) <= '1' when temp_output(2 * output'length - 1 downto output'length) /= zero_signal and selector /= "111" else
-                '1' when temp_output(output'length - 1) /= '1' and selector = "111" else
-                '0';
+    flags(FLAG_O) <= '1' when temp_output(2 * output'length - 1 downto output'length) /= zero_signal and selector /= "111" else
+                     '1' when temp_output(output'length - 1) /= '1' and selector = "111" else
+                     '0';
 
     output <= temp_output(output'length - 1 downto 0);
 
