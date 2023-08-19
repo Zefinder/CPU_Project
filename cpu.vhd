@@ -38,13 +38,6 @@ architecture RTL of cpu is
     constant flag_selector_size     : natural := 2;
 
     component control_unit
-        generic(
-            instruction_size       : natural := 32;
-            data_size              : natural := 8;
-            alu_selector_size      : natural := 3;
-            register_selector_size : natural := 4;
-            flag_selector_size     : natural := 2
-        );
         port(
             instruction_vector      : in  std_logic_vector(instruction_size - 1 downto 0);
             operand1                : out std_logic_vector(data_size - 1 downto 0);
@@ -190,18 +183,6 @@ begin
     -- Instantiation of the control unit, it is linked to the ALU, register bank, 
     -- flag bank and RAM
     control_unit_inst : component control_unit
-        generic map(
-            -- Size of an instruction
-            instruction_size       => instruction_size,
-            -- Size of data and addresses
-            data_size              => data_size,
-            -- Size of the ALU selector
-            alu_selector_size      => alu_selector_size,
-            -- Size of the register selector
-            register_selector_size => register_selector_size,
-            -- Size of the flag selector
-            flag_selector_size     => flag_selector_size
-        )
         port map(
             -- Vector of instruction
             instruction_vector      => instruction_vector,
