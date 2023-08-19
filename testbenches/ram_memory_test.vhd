@@ -7,31 +7,31 @@ end entity ram_memory_test;
 
 architecture testbench of ram_memory_test is
 
-    constant address_size : natural := 8;
-    constant data_size    : natural := 8;
+    constant ADDRESS_SIZE : natural := 8;
+    constant DATA_SIZE    : natural := 8;
 
     component ram_memory
-        generic(data_size : natural := 8);
+        generic(DATA_SIZE : natural := 8);
         port(
             clk       : in  std_logic;
             write     : in  std_logic;
-            address   : in  std_logic_vector(data_size - 1 downto 0);
-            value_in  : in  std_logic_vector(data_size - 1 downto 0);
-            value_out : out std_logic_vector(data_size - 1 downto 0)
+            address   : in  std_logic_vector(DATA_SIZE - 1 downto 0);
+            value_in  : in  std_logic_vector(DATA_SIZE - 1 downto 0);
+            value_out : out std_logic_vector(DATA_SIZE - 1 downto 0)
         );
     end component ram_memory;
     for all : ram_memory use entity work.ram_memory(RTL);
 
     signal clk       : std_logic                                   := '0';
     signal write     : std_logic                                   := '1';
-    signal address   : std_logic_vector(address_size - 1 downto 0) := x"00";
-    signal value_in  : std_logic_vector(data_size - 1 downto 0)    := x"1A";
-    signal value_out : std_logic_vector(data_size - 1 downto 0); -- @suppress "signal value_out is never read"
+    signal address   : std_logic_vector(ADDRESS_SIZE - 1 downto 0) := x"00";
+    signal value_in  : std_logic_vector(DATA_SIZE - 1 downto 0)    := x"1A";
+    signal value_out : std_logic_vector(DATA_SIZE - 1 downto 0); -- @suppress "signal value_out is never read"
 begin
 
     memory_inst : component ram_memory
         generic map(
-            data_size => data_size
+            DATA_SIZE => DATA_SIZE
         )
         port map(
             clk       => clk,

@@ -4,6 +4,7 @@
   <Mappings Location="Common Libraries/IEEE Synopsys" Library="ieee"/>
   <Mappings Location="Common Libraries" Library="not mapped"/>
   <Mappings Location="Packages" Library="not mapped"/>
+  <Mappings Location="instruction_memory.vhd" Library="not mapped"/>
   <Mappings Location="Common Libraries/STD" Library="std"/>
   <Mappings Location="Packages/cpu_utils.vhd" Library="utils"/>
   <Mappings Location="" Library="work"/>

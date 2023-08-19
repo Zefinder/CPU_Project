@@ -1,27 +1,28 @@
 library ieee;
+library utils;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use utils.cpu_utils.all;
 
 entity flag_bank_test is
 end entity flag_bank_test;
 
 architecture testbench of flag_bank_test is
     component flag_bank
-        generic(flag_selector_size : natural := 2);
         port(
             clk           : in  std_logic;
-            flag_selector : in  std_logic_vector(flag_selector_size - 1 downto 0);
-            input_flags   : in  std_logic_vector(2 ** flag_selector_size - 1 downto 0);
+            flag_selector : in  std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
+            input_flags   : in  std_logic_vector(2 ** FLAG_SELECTOR_SIZE - 1 downto 0);
             update_flags  : in  std_logic;
             output_flag   : out std_logic
         );
     end component flag_bank;
 
-    constant flag_selector_size : natural := 2;
+    constant FLAG_SELECTOR_SIZE : natural := 2;
 
     signal clk           : std_logic := '0';
-    signal flag_selector : std_logic_vector(flag_selector_size - 1 downto 0) := (others => '0');
-    signal input_flags   : std_logic_vector(2 ** flag_selector_size - 1 downto 0) := (others => '0');
+    signal flag_selector : std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0) := (others => '0');
+    signal input_flags   : std_logic_vector(2 ** FLAG_SELECTOR_SIZE - 1 downto 0) := (others => '0');
     signal update_flags  : std_logic := '1';
     signal output_flag   : std_logic;
 
@@ -29,9 +30,6 @@ architecture testbench of flag_bank_test is
 begin
 
     flag_bank_inst : component flag_bank
-        generic map(
-            flag_selector_size => flag_selector_size
-        )
         port map(
             clk           => clk,
             flag_selector => flag_selector,
@@ -57,7 +55,7 @@ begin
         variable update_flag_variable   : std_logic := '0';
 
         variable init                        : natural := 0;
-        variable input_flags_vector_variable : unsigned(2 ** flag_selector_size - 1 downto 0) := (others => '0');
+        variable input_flags_vector_variable : unsigned(2 ** FLAG_SELECTOR_SIZE - 1 downto 0) := (others => '0');
     begin
         
         if init = 0 then
@@ -84,11 +82,11 @@ begin
             end if;
 
             -- We iterate over all flags before changing
-            if flag_selector_variable = 2 ** flag_selector_size - 1 then
+            if flag_selector_variable = 2 ** FLAG_SELECTOR_SIZE - 1 then
                 flag_selector_variable := 0;
 
                 -- If input flags is at its max then we reset it and change the update status
-                if input_flags_variable = 2 ** (2 ** flag_selector_size - 1) - 1 then
+                if input_flags_variable = 2 ** (2 ** FLAG_SELECTOR_SIZE - 1) - 1 then
                     input_flags_variable := 0;
                     update_flag_variable := not update_flag_variable;
                     init                 := init + 1;
@@ -100,8 +98,8 @@ begin
             end if;
             
             -- Assignment
-            input_flags_vector_variable := to_unsigned(input_flags_variable, 2 ** flag_selector_size);
-            flag_selector <= std_logic_vector(to_unsigned(flag_selector_variable, flag_selector_size));
+            input_flags_vector_variable := to_unsigned(input_flags_variable, 2 ** FLAG_SELECTOR_SIZE);
+            flag_selector <= std_logic_vector(to_unsigned(flag_selector_variable, FLAG_SELECTOR_SIZE));
             input_flags   <= std_logic_vector(input_flags_vector_variable);
             update_flags  <= update_flag_variable;
             wait for 10 ns;

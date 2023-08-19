@@ -165,6 +165,30 @@ end process clk_timing;
 
 This goes to 1GB really fast, be carefull to not forget to stop the simulation!
 
+## CPU capabilities
+Of course, I won't make a CPU without exposing what you can do with it. As I still continue to develop it, this paragraph can be updated and is, for now, only the global idea of the final looking of this CPU. If I have other ideas I will put them here.
+
+### Instruction map
+This map does not contain any information about addressing mode, for this refer to the (not yet written) explanatory pdf of the CPU.
+| | 0X | 1X | 2X | 3X | 4X | 5X | 6X | 7X | 8X | 9X | AX | BX | CX | DX | EX | FX |
+| :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
+| *X0* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| *X1* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| *X2* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| *X3* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| *X4* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| *X5* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| *X6* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| *X7* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| *X8* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| *X9* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| *XA* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| *XB* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| *XC* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| *XD* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| *XE* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| *XF* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+
 ## Why a CPU?
 Why not?
 

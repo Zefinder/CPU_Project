@@ -1,49 +1,40 @@
 library ieee;
+library utils;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use utils.cpu_utils.all;
 
 entity register_bank_test is
 end entity register_bank_test;
 
 architecture testbench of register_bank_test is
-    constant data_size              : natural := 8;
-    constant register_selector_size : natural := 4;
-
     component register_bank
-        generic(
-            data_size              : natural := 8;
-            register_selector_size : natural := 4
-        );
         port(
             clk                     : in  std_logic;
-            register_address_read_1 : in  std_logic_vector(register_selector_size - 1 downto 0);
-            register_address_read_2 : in  std_logic_vector(register_selector_size - 1 downto 0);
-            register_address_write  : in  std_logic_vector(register_selector_size - 1 downto 0);
-            register_load           : in  std_logic_vector(data_size - 1 downto 0);
+            register_address_read_1 : in  std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+            register_address_read_2 : in  std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+            register_address_write  : in  std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+            register_load           : in  std_logic_vector(DATA_SIZE - 1 downto 0);
             write_register          : in  std_logic;
-            register_output_1       : out std_logic_vector(data_size - 1 downto 0);
-            register_output_2       : out std_logic_vector(data_size - 1 downto 0)
+            register_output_1       : out std_logic_vector(DATA_SIZE - 1 downto 0);
+            register_output_2       : out std_logic_vector(DATA_SIZE - 1 downto 0)
         );
     end component register_bank;
 
     signal clk                     : std_logic                                             := '0';
-    signal register_address_read_1 : std_logic_vector(register_selector_size - 1 downto 0) := (others => '0');
-    signal register_address_read_2 : std_logic_vector(register_selector_size - 1 downto 0) := (others => '0');
-    signal register_address_write  : std_logic_vector(register_selector_size - 1 downto 0) := (others => '0');
-    signal register_load           : std_logic_vector(data_size - 1 downto 0)              := (others => '0');
+    signal register_address_read_1 : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0) := (others => '0');
+    signal register_address_read_2 : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0) := (others => '0');
+    signal register_address_write  : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0) := (others => '0');
+    signal register_load           : std_logic_vector(DATA_SIZE - 1 downto 0)              := (others => '0');
     signal write_register          : std_logic                                             := '0';
-    signal register_output_1       : std_logic_vector(data_size - 1 downto 0);
-    signal register_output_2       : std_logic_vector(data_size - 1 downto 0);
+    signal register_output_1       : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal register_output_2       : std_logic_vector(DATA_SIZE - 1 downto 0);
 
     for all : register_bank use entity work.register_bank(RTL);
 
 begin
 
     register_bank_inst : component register_bank
-        generic map(
-            data_size              => data_size,
-            register_selector_size => register_selector_size
-        )
         port map(
             clk                     => clk,
             register_address_read_1 => register_address_read_1,

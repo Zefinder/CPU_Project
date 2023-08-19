@@ -4,19 +4,13 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use utils.cpu_utils.all;
 
--- TODO Remove generics, use cpu_utils, no need to have generics at all !
 entity alu is
-    
-    generic(
-        data_size : positive := 8       -- Size of the operands and of the output
-    );
-
     port(
-        a, b     : in  std_logic_vector(data_size - 1 downto 0); -- Operand of the ALU 
+        a, b     : in  std_logic_vector(DATA_SIZE - 1 downto 0); -- Operand of the ALU 
         selector : in  std_logic_vector(2 downto 0); -- Selector of the operation to use
         c_in     : in  std_logic;       -- Input carry for addition and subtraction
         flags    : out std_logic_vector(3 downto 0); -- Output flags (in order: C, Z, N, O)
-        output   : out std_logic_vector(data_size - 1 downto 0) -- Output of the ALU
+        output   : out std_logic_vector(DATA_SIZE - 1 downto 0) -- Output of the ALU
     );
 end entity alu;
 
@@ -29,7 +23,7 @@ architecture RTL of alu is
     signal temp_output : std_logic_vector(2 * output'length - 1 downto 0);
 
     -- Adds padding to the input std_logic_vector
-    function add_padding(std_vector : std_logic_vector(data_size - 1 downto 0)) return std_logic_vector is
+    function add_padding(std_vector : std_logic_vector(DATA_SIZE - 1 downto 0)) return std_logic_vector is
     begin
         return zero_signal & std_vector;
     end function add_padding;
