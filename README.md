@@ -172,22 +172,24 @@ Of course, I won't make a CPU without exposing what you can do with it. As I sti
 This map does not contain any information about addressing mode, for this refer to the (not yet written) explanatory pdf of the CPU.
 | | 0X | 1X | 2X | 3X | 4X | 5X | 6X | 7X | 8X | 9X | AX | BX | CX | DX | EX | FX |
 | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
-| *X0* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| *X1* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| *X2* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| *X3* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| *X4* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| *X5* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| *X6* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| *X7* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| *X8* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| *X9* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| *XA* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| *XB* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| *XC* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| *XD* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| *XE* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| *XF* |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| **X0** | NOP | NOP\* | NOP\* | NOP\* | MOV | MOV\* | MOV | MOV\* | STR | STR | STR\* | STR\* | STRMV\*\* | STREGMV\* | STRMEMV\*\* | SWAP\*\* |
+| **X1** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | MOV\* | MOV\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STREGMV\*\* | STRMEMV\*\* | SWAP\*\* |
+| **X2** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| **X3** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| **X4** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | MOV\* | MOV\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STREGMV\*\* | STRMEMV\*\* | SWAP\*\* |
+| **X5** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | MOV\* | MOV\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STREGMV\*\* | STRMEMV\*\* | SWAP\*\* |
+| **X6** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| **X7** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| **X8** | ADD | ADD | ADD | ADD | ADD\* | ADD\* | ADD\* | ADD\* | ADD\* | ADD\* | ADD\* | ADD\* | ADD\* | ADD\* | ADD\* | ADD\* |
+| **X9** | SUB | SUB | SUB | SUB | SUB\* | SUB\* | SUB\* | SUB\* | SUB\* | SUB\* | SUB\* | SUB\* | SUB\* | SUB\* | SUB\* | SUB\* |
+| **XA** | MUL | MUL | MUL | MUL | MUL\* | MUL\* | MUL\* | MUL\* | MUL\* | MUL\* | MUL\* | MUL\* | MUL\* | MUL\* | MUL\* | MUL\* |
+| **XB** | AND | AND | AND | AND | AND\* | AND\* | AND\* | AND\* | AND\* | AND\* | AND\* | AND\* | AND\* | AND\* | AND\* | AND\* |
+| **XC** | OR | OR | OR | OR | OR\* | OR\* | OR\* | OR\* | OR\* | OR\* | OR\* | OR\* | OR\* | OR\* | OR\* | OR\* |
+| **XD** | XOR | XOR | XOR | XOR | XOR\* | XOR\* | XOR\* | XOR\* | XOR\* | XOR\* | XOR\* | XOR\* | XOR\* | XOR\* | XOR\* | XOR\* |
+| **XE** | NOT | NOT | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* |
+| **XF** | CMP | CMP | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* |
+
+All opcodes marked with \* are opcodes that are not used with their defined opcode. All opcodes marked with \*\* are unofficial opcodes. They are opcodes that uses a combination of existing functionnality to do something that was not meant for because of clock cycles configuration. Most of them must be followed by a NOPs to be working normally. Empty cells are cells that are still in progress.
 
 ## Why a CPU?
 Why not?

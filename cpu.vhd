@@ -153,9 +153,11 @@ begin
                  register_operand_2;
 
     register_load <= ram_output when use_memory_for_register = '1' else
+                     cu_operand_1 when use_alu = '0' else
                      alu_output;
 
     ram_load <= register_operand_1 when use_register_for_memory = '1' else
+                cu_operand_1 when use_alu = '0' else
                 alu_output;
 
     output <= alu_output;
