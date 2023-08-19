@@ -94,14 +94,14 @@ architecture RTL of control_unit is
     -- Bit that enables the ALU
     constant EN_ALU    : natural := 3;
     -- Bit representing the third ALU selector bit
-    constant ALU_SEL_2     : natural := 2;
+    constant ALU_SEL_2 : natural := 2;
     -- Bit representing the second ALU selector bit
-    constant ALU_SEL_1     : natural := 1;
+    constant ALU_SEL_1 : natural := 1;
     -- Bit representing the first ALU selector bit
-    constant ALU_SEL_0     : natural := 0;
-    
+    constant ALU_SEL_0 : natural := 0;
+
     -- Non branching opcode bits
-    
+
     -- Bit enabling storage in the RAM memory
     constant STR_MEM : natural := 7;
     -- Bit enabling storage in the register bank
@@ -110,15 +110,15 @@ architecture RTL of control_unit is
     constant USE_MEM : natural := 5;
     -- Bit putting register output to memory input
     constant USE_REG : natural := 4;
-    
+
     -- Branching opcodes bits
     -- Bit representing the usage of the second register
-    constant FL_SEL_1 : natural := 5;
+    constant FL_SEL_1      : natural := 5;
     -- Bit representing the usage of the first register
-    constant FL_SEL_0 : natural := 4;
+    constant FL_SEL_0      : natural := 4;
     -- Bit representing the usage of the first register
-    constant EN_BRANCH : natural := 1;
-    -- Bit representing the usage of the first register
+    constant EN_BRANCH     : natural := 1;
+    -- Bit representing the usage of the first register (TODO Implement it)
     constant EN_REL_BRANCH : natural := 0;
 
     -- Opcode of the instruction, it has the information of the instruction and the addressing mode
@@ -186,14 +186,52 @@ begin
         else
             -- The ALU is disabled
             use_alu <= '0';
-            
+
+            -- Not use register for alu
+            use_register_1 <= '0';
+            use_register_2 <= '0';
+
             -- We check if it is a branch instruction
-            -- TODO Do the branh instruction
+            -- TODO Do the branch instruction
             if instruction_opcode(EN_BRANCH) = '1' then
+                -- TODO Enable branch output
+
+                -- We change the value of the program counter (even if there is no instruction memory for now)
+                register_address_write <= REG_PC;
+
+                -- We put the flag address to the selectors
+                flag_address <= instruction_opcode(FL_SEL_1) & instruction_opcode(FL_SEL_0);
+
+                -- We don't use memory for register and register for memory
+                use_memory_for_register <= '0';
+                use_register_for_memory <= '0';
+
+                -- We write in PC so we write in the register
+                write_register <= '1';
+
+                -- We don't write in the memory
+                write_ram <= '0';
             else
-                
+                -- No usage of it so we put it to C flag
+                flag_address <= FLAG_C_ADDR;
+
+                -- Register write always the last part of b operator
+                register_address_write <= instruction_b(DATA_SIZE / 2 - 1 downto 0);
+
+                -- We use the memory output for the register input if the bit is set
+                use_memory_for_register <= instruction_opcode(USE_MEM);
+
+                -- We use the register output for the memory input if the bit is set
+                use_register_for_memory <= instruction_opcode(USE_REG);
+
+                -- We write in the memory if the bit is set
+                write_ram <= instruction_opcode(STR_MEM);
+
+                -- We write in the register if the bit is set
+                write_register <= instruction_opcode(STR_REG);
+
             end if;
-            
+
         end if;
 
     end process control_unit_process;

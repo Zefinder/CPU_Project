@@ -8,6 +8,9 @@ package cpu_utils is
     constant ALU_SELECTOR_SIZE      : natural := 3;  -- Size of the ALU selector
     constant REGISTER_SELECTOR_SIZE : natural := 4;  -- Size of the register selector
     constant FLAG_SELECTOR_SIZE     : natural := 2;  -- Size of the flag selector
+    
+    constant REG_LR : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0) := "1110";
+    constant REG_PC : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0) := "1111";
 
     constant FLAG_C : natural := 0;     -- Selector for C flag (carry)
     constant FLAG_Z : natural := 1;     -- Selector for Z flag (zero)
