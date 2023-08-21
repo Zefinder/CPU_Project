@@ -9,9 +9,9 @@ I will probably make a compiler, an interpreter and documentation of this CPU so
 
 This CPU has a few components. The one that are ok are marked with (\/) currently developped are marked with (\*), the ones that are developped but where tests are lacking or are simply not implemented are marked with (+), the ones that still need to be developped are marked with (#) and finally the ones that will be improved are marked with ($).
 
-- ALU				(\/)
+- ALU				(\/)($) (Add a new bit of selector for flag set and reset)
 - Register bank 	(\/)
-- Flag bank			(\/)
+- Flag bank			(\/)($) (To follow the new ALU)
 - Branching unit	(\/)
 - RAM memory		(\/)($)
 - Control unit      (\*)(+)($)
@@ -167,6 +167,20 @@ This goes to 1GB really fast, be carefull to not forget to stop the simulation!
 
 ## CPU capabilities
 Of course, I won't make a CPU without exposing what you can do with it. As I still continue to develop it, this paragraph can be updated and is, for now, only the global idea of the final looking of this CPU. If I have other ideas I will put them here.
+
+### Components of an instruction
+An instruction is divided in 4 parts : 
+- Opcode (1 byte)
+- A/First operand (register size bytes (for now 1))
+- B/Second operand (register size bytes (for now 1))
+- Address (RAM address size bytes)
+
+There are a few things to know to fully understand how to write assembly for this CPU: 
+- The opcode allows a lot of instruction and thus have a lot of options (cf. *Addressing mode* and *Instruction map*)
+- A and B are basically the input of the ALU as well as the size of a register. Changing ones size implies also changing the other to have the whole structure working.
+- The address is the size of the RAM address and *only for now* twice the size of the register selector. This will change but be sure to verify the following assumption: `size_address >= 2*size_register_selector`.
+- Register address is always in the address part. For a 8-bits address and 4-bits selector, it will be 11112222 (1 being register 1 and 2 being register 2). If the address is bigger, the remaining bits are ignored. With the same example but with a 12-bits address, it will be 11112222XXXX (X being ignored). 
+- The **LR** and **PC** registers are special, they will be (because not yet implemented) the size of an address. They are located at address `0xE` and `0xF`, if the normal register output is too small, they will be truncated.
 
 ### Instruction map
 This map does not contain any information about addressing mode, for this refer to the (not yet written) explanatory pdf of the CPU.
