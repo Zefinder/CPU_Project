@@ -4,6 +4,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use utils.cpu_utils.all;
 
+-- TODO Move branching accept logic to here and not always write in register
 entity branching_unit is
     port(
         -- Branch address to maybe update before outputing it
