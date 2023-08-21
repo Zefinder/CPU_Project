@@ -4,6 +4,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use utils.cpu_utils.all;
 
+-- TODO Add new bit of selector for flag reset or flag set!
 entity alu is
     port(
         a, b     : in  std_logic_vector(DATA_SIZE - 1 downto 0); -- Operand of the ALU 

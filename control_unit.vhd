@@ -7,37 +7,47 @@ use utils.cpu_utils.all;
 entity control_unit is
     port(
         -- Contains the instruction to process, 4 bytes (opcode-A-B-address)
-        instruction_vector      : in  std_logic_vector(INSTRUCTION_SIZE - 1 downto 0);
+        instruction_vector                 : in  std_logic_vector(INSTRUCTION_SIZE - 1 downto 0);
         -- First operand to give to the ALU
-        operand1                : out std_logic_vector(DATA_SIZE - 1 downto 0);
+        operand1                           : out std_logic_vector(DATA_SIZE - 1 downto 0);
         -- Second operand to give to the ALU
-        operand2                : out std_logic_vector(DATA_SIZE - 1 downto 0);
+        operand2                           : out std_logic_vector(DATA_SIZE - 1 downto 0);
         -- Selector of the ALU
-        alu_selector            : out std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
+        alu_selector                       : out std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
         -- Address used to read a register (sends it to the first operand of the ALU)
-        register_address_read_1 : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+        register_address_read_1            : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
         -- Address used to read a register (sends it to the second operand of the ALU)
-        register_address_read_2 : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+        register_address_read_2            : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
         -- Address used to write in a register
-        register_address_write  : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+        register_address_write             : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
         -- Address used to read a flag
-        flag_address            : out std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
+        flag_address                       : out std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
         -- Address used to read and write in the RAM
-        ram_address             : out std_logic_vector(DATA_SIZE - 1 downto 0);
+        ram_address                        : out std_logic_vector(DATA_SIZE - 1 downto 0);
         -- Uses the result of the ALU
-        use_alu                 : out std_logic;
+        use_alu                            : out std_logic;
         -- Uses the content of a register and outputs it to the first output (specified by __register_address_read_1__)
-        use_register_1          : out std_logic;
+        use_register_1                     : out std_logic;
         -- Uses the content of a register and outputs it to the second output (specified by __register_address_read_2__)
-        use_register_2          : out std_logic;
+        use_register_2                     : out std_logic;
         -- Uses the content of the memory cell for the input of the register bank (specified by __memory_address_read__)
-        use_memory_for_register : out std_logic;
+        use_memory_for_register            : out std_logic;
         -- Uses the content of the register for the input of the memory (specified by __register_address_read_1__)
-        use_register_for_memory : out std_logic;
+        use_register_for_memory            : out std_logic;
+        -- Uses the output of the branching unit as load for the register
+        use_branching_unit                 : out std_logic;
+        -- Uses the branching offset
+        use_branching_offset               : out std_logic;
+        -- Uses the first register for branching address
+        use_register_for_branching_address : out std_logic;
+        -- Uses the second register for branching offset
+        use_register_for_branching_offset  : out std_logic;
+        -- Tests if the flag is not set
+        branch_invert_flag                 : out std_logic;
         -- Indicate if the register at address __register_address_write__ must be written
-        write_register          : out std_logic;
+        write_register                     : out std_logic;
         -- Indicate if the ram memory cell at address __ram_address_write__ must be written
-        write_ram               : out std_logic
+        write_ram                          : out std_logic
     );
 end entity control_unit;
 
@@ -71,16 +81,15 @@ end entity control_unit;
 -- | Bit 0 | UNUSED |
 --
 -- ## For branch instructions
--- TODO Enable register offet branching
 --
 -- | Bit position | Function |
 -- | :----------: | :------: |
--- | Bit 7 | UNUSED |
--- | Bit 6 | UNUSED |
--- | Bit 5 | FL_SEL_1 |
--- | Bit 4 | FL_SEL_0 |
+-- | Bit 7 | FL_SEL_1 |
+-- | Bit 6 | FL_SEL_0 |
+-- | Bit 5 | USE_REG_OFFSET |
+-- | Bit 4 | USE_REG_ADDR |
 -- | Bit 3 | EN_ALU (Always 0) |
--- | Bit 2 | UNUSED |
+-- | Bit 2 | INV_FLAG |
 -- | Bit 1 | EN_BRANCH (Always 1) |
 -- | Bit 0 | EN_REL_BRANCH |
 architecture RTL of control_unit is
@@ -91,7 +100,7 @@ architecture RTL of control_unit is
     constant USE_REG_2 : natural := 5;
     -- Bit representing the usage of the first register
     constant USE_REG_1 : natural := 4;
-    -- Bit that enables the ALU
+    -- Bit enabling the ALU
     constant EN_ALU    : natural := 3;
     -- Bit representing the third ALU selector bit
     constant ALU_SEL_2 : natural := 2;
@@ -112,14 +121,21 @@ architecture RTL of control_unit is
     constant USE_REG : natural := 4;
 
     -- Branching opcodes bits
+
     -- Bit representing the usage of the second register
-    constant FL_SEL_1      : natural := 5;
+    constant FL_SEL_1       : natural := 7;
     -- Bit representing the usage of the first register
-    constant FL_SEL_0      : natural := 4;
+    constant FL_SEL_0       : natural := 6;
+    -- Bit representing the usage of the second register for the offset
+    constant USE_REG_OFFSET : natural := 5;
+    -- Bit representing the usage of the first register for the address
+    constant USE_REG_ADDR   : natural := 4;
+    -- Bit inverting flag test ('0' instead of '1')
+    constant INV_FLAG       : natural := 2;
     -- Bit representing the usage of the first register
-    constant EN_BRANCH     : natural := 1;
-    -- Bit representing the usage of the first register (TODO Implement it)
-    constant EN_REL_BRANCH : natural := 0;
+    constant EN_BRANCH      : natural := 1;
+    -- Bit representing the usage of the first register
+    constant EN_REL_BRANCH  : natural := 0;
 
     -- Opcode of the instruction, it has the information of the instruction and the addressing mode
     signal instruction_opcode  : std_logic_vector(DATA_SIZE - 1 downto 0);
@@ -149,16 +165,22 @@ begin
 
         ram_address <= instruction_address;
 
+        use_branching_offset               <= instruction_opcode(EN_REL_BRANCH);
+        branch_invert_flag                 <= instruction_opcode(INV_FLAG);
+        use_register_for_branching_address <= instruction_opcode(USE_REG_ADDR);
+        use_register_for_branching_offset  <= instruction_opcode(USE_REG_OFFSET);
+
         -- If the ALU is on, then you don't use the other opcode bits the same way
         if instruction_opcode(EN_ALU) = '1' then
             -- We use the ALU in ALU mode, yes you are not crazy
             use_alu <= '1';
 
-            -- We use the ALU result for the register
+            -- We don't use memory for register and register for memory
             use_memory_for_register <= '0';
-
-            -- We do not use the register for memory
             use_register_for_memory <= '0';
+
+            -- We do not use the branching unit
+            use_branching_unit <= '0';
 
             -- We write in the register at the end of the ALU
             write_register <= '1';
@@ -192,9 +214,9 @@ begin
             use_register_2 <= '0';
 
             -- We check if it is a branch instruction
-            -- TODO Do the branch instruction
             if instruction_opcode(EN_BRANCH) = '1' then
-                -- TODO Enable branch output
+                -- We enable the branching unit
+                use_branching_unit <= '1';
 
                 -- We change the value of the program counter (even if there is no instruction memory for now)
                 register_address_write <= REG_PC;
@@ -212,6 +234,9 @@ begin
                 -- We don't write in the memory
                 write_ram <= '0';
             else
+                -- We do not use the branching unit
+                use_branching_unit <= '0';
+
                 -- No usage of it so we put it to C flag
                 flag_address <= FLAG_C_ADDR;
 
@@ -229,7 +254,6 @@ begin
 
                 -- We write in the register if the bit is set
                 write_register <= instruction_opcode(STR_REG);
-
             end if;
 
         end if;

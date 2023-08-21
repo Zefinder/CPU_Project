@@ -5,12 +5,13 @@ use ieee.numeric_std.all;
 use utils.cpu_utils.all;
 
 -- This entity represents the global supercomponent CPU. It will instantiate all
--- generics of all defined components and is basically the top level of this project.
+-- components and is basically the top level of this project.
 --
 -- A few things must still be discussed with myself (or with Nicolas because he has good ideas) 
--- regarding the input and outputs. For the input, I would be suggesting to make an instruction
--- memory in the CPU as a cached program but it will be impossible to make tests on it without
--- modifying directly the component and the constant array of instructions.
+-- regarding the input and outputs. For the input, the best idea is to make an instruction memory
+-- and an instruction loader. With this, it would just need to load a program in some place in
+-- the CPU and then starts. It allows custom programs to be run on the CPU and it's not that hard
+-- to make (bonus point!)
 --
 -- For the output, I think that pointing to the first register's output can be a good idea, 
 -- like for functions in assembly where the result will be contained in `R0`.
@@ -28,22 +29,27 @@ end entity cpu;
 architecture RTL of cpu is
     component control_unit
         port(
-            instruction_vector      : in  std_logic_vector(INSTRUCTION_SIZE - 1 downto 0);
-            operand1                : out std_logic_vector(DATA_SIZE - 1 downto 0);
-            operand2                : out std_logic_vector(DATA_SIZE - 1 downto 0);
-            alu_selector            : out std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
-            register_address_read_1 : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
-            register_address_read_2 : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
-            register_address_write  : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
-            flag_address            : out std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
-            ram_address             : out std_logic_vector(DATA_SIZE - 1 downto 0);
-            use_alu                 : out std_logic;
-            use_register_1          : out std_logic;
-            use_register_2          : out std_logic;
-            use_memory_for_register : out std_logic;
-            use_register_for_memory : out std_logic;
-            write_register          : out std_logic;
-            write_ram               : out std_logic
+            instruction_vector                 : in  std_logic_vector(INSTRUCTION_SIZE - 1 downto 0);
+            operand1                           : out std_logic_vector(DATA_SIZE - 1 downto 0);
+            operand2                           : out std_logic_vector(DATA_SIZE - 1 downto 0);
+            alu_selector                       : out std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
+            register_address_read_1            : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+            register_address_read_2            : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+            register_address_write             : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+            flag_address                       : out std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
+            ram_address                        : out std_logic_vector(DATA_SIZE - 1 downto 0);
+            use_alu                            : out std_logic;
+            use_register_1                     : out std_logic;
+            use_register_2                     : out std_logic;
+            use_memory_for_register            : out std_logic;
+            use_register_for_memory            : out std_logic;
+            use_branching_unit                 : out std_logic;
+            use_branching_offset               : out std_logic;
+            use_register_for_branching_address : out std_logic;
+            use_register_for_branching_offset  : out std_logic;
+            branch_invert_flag                 : out std_logic;
+            write_register                     : out std_logic;
+            write_ram                          : out std_logic
         );
     end component control_unit;
 
@@ -90,11 +96,24 @@ architecture RTL of cpu is
         );
     end component ram_memory;
 
+    component branching_unit
+        port(
+            branching_address      : in  std_logic_vector(DATA_SIZE - 1 downto 0);
+            offset                 : in  std_logic_vector(DATA_SIZE - 1 downto 0);
+            use_offset             : in  std_logic;
+            flag                   : in  std_logic;
+            is_inverted_test       : in  std_logic;
+            out_program_counter    : out std_logic_vector(DATA_SIZE - 1 downto 0);
+            update_program_counter : out std_logic
+        );
+    end component branching_unit;
+
     for all : control_unit use entity work.control_unit(RTL);
     for all : alu use entity work.alu(RTL);
     for all : flag_bank use entity work.flag_bank(RTL);
     for all : register_bank use entity work.register_bank(RTL);
     for all : ram_memory use entity work.ram_memory(RTL);
+    for all : branching_unit use entity work.branching_unit(RTL);
 
     -- Input operand of the ALU
     signal operand_1, operand_2                             : std_logic_vector(DATA_SIZE - 1 downto 0);
@@ -126,39 +145,68 @@ architecture RTL of cpu is
     signal ram_output                                       : std_logic_vector(DATA_SIZE - 1 downto 0);
     -- Data to load in the RAM
     signal ram_load                                         : std_logic_vector(DATA_SIZE - 1 downto 0);
+    -- Branching address as branching unit input
+    signal branching_address_input                          : std_logic_vector(DATA_SIZE - 1 downto 0);
+    -- Branching address as branching unit output
+    signal branching_address_output                         : std_logic_vector(DATA_SIZE - 1 downto 0);
+    -- Data used as offset for branching address
+    signal branching_offset                                 : std_logic_vector(DATA_SIZE - 1 downto 0);
 
     -- Output of the flags
-    signal flag_output             : std_logic;
+    signal flag_output                        : std_logic;
     -- Uses the result of the ALU
-    signal use_alu                 : std_logic;
+    signal use_alu                            : std_logic;
     -- Uses the first register as an operand for the ALU or to load in the RAM
-    signal use_register_1          : std_logic;
+    signal use_register_1                     : std_logic;
     -- Uses the second register as an operand for the ALU or to load in the RAM
-    signal use_register_2          : std_logic;
+    signal use_register_2                     : std_logic;
     -- Uses the output of the memory as data to load in the register
-    signal use_memory_for_register : std_logic;
+    signal use_memory_for_register            : std_logic;
     -- Uses the output of the register as data to load in the RAM
-    signal use_register_for_memory : std_logic;
+    signal use_register_for_memory            : std_logic;
     -- Enables writing in the register bank
-    signal write_register          : std_logic;
+    signal cu_write_register                  : std_logic;
+    -- Enables writing in the register bank
+    signal branch_write_register              : std_logic;
+    -- Enables writing in the register bank
+    signal write_register                     : std_logic;
     -- Enables writing in the RAM
-    signal write_ram               : std_logic;
+    signal write_ram                          : std_logic;
+    -- Enables branching unit
+    signal use_branching_unit                 : std_logic;
+    -- Uses offset for branching
+    signal use_branching_offset               : std_logic;
+    -- Inverts the test of the flag for branching test
+    signal branch_invert_flag                 : std_logic;
+    -- Uses the first register as branching address
+    signal use_register_for_branching_address : std_logic;
+    -- Uses the second register as branching offset
+    signal use_register_for_branching_offset  : std_logic;
 
 begin
-
     operand_1 <= cu_operand_1 when use_register_1 = '1' else
                  register_operand_1;
 
     operand_2 <= cu_operand_2 when use_register_2 = '1' else
                  register_operand_2;
 
-    register_load <= ram_output when use_memory_for_register = '1' else
+    register_load <= branching_address_output when use_branching_unit = '1' else
+                     ram_output when use_memory_for_register = '1' else
                      cu_operand_1 when use_alu = '0' else
                      alu_output;
 
     ram_load <= register_operand_1 when use_register_for_memory = '1' else
                 cu_operand_1 when use_alu = '0' else
                 alu_output;
+
+    write_register <= branch_write_register when use_branching_unit = '1' else
+                      cu_write_register;
+
+    branching_address_input <= register_operand_1 when use_register_for_branching_address = '1' else
+                               cu_operand_1;
+
+    branching_offset <= register_operand_2 when use_register_for_branching_offset = '1' else
+                        cu_operand_2;
 
     output <= alu_output;
 
@@ -167,37 +215,47 @@ begin
     control_unit_inst : component control_unit
         port map(
             -- Vector of instruction
-            instruction_vector      => instruction_vector,
+            instruction_vector                 => instruction_vector,
             -- First operand for the ALU
-            operand1                => cu_operand_1,
+            operand1                           => cu_operand_1,
             -- Second operand for the ALU
-            operand2                => cu_operand_2,
+            operand2                           => cu_operand_2,
             -- Selector of the ALU
-            alu_selector            => alu_selector,
+            alu_selector                       => alu_selector,
             -- First address for the register to output
-            register_address_read_1 => register_address_read_1,
+            register_address_read_1            => register_address_read_1,
             -- Second address for the register to output
-            register_address_read_2 => register_address_read_2,
+            register_address_read_2            => register_address_read_2,
             -- Addres for the register to write
-            register_address_write  => register_address_write,
+            register_address_write             => register_address_write,
             -- Address for the flag to output
-            flag_address            => flag_selector,
+            flag_address                       => flag_selector,
             -- Address for the RAM
-            ram_address             => ram_address,
+            ram_address                        => ram_address,
             -- Enables the ALU
-            use_alu                 => use_alu,
+            use_alu                            => use_alu,
             -- Enables the first register output
-            use_register_1          => use_register_1,
+            use_register_1                     => use_register_1,
             -- Enables the second register output
-            use_register_2          => use_register_2,
+            use_register_2                     => use_register_2,
             -- Uses the memory as register input
-            use_memory_for_register => use_memory_for_register,
+            use_memory_for_register            => use_memory_for_register,
             -- Uses the register as memory input
-            use_register_for_memory => use_register_for_memory,
+            use_register_for_memory            => use_register_for_memory,
+            -- Uses the branching output for register load
+            use_branching_unit                 => use_branching_unit,
+            -- Uses the branching offset
+            use_branching_offset               => use_branching_offset,
+            -- Uses the first register as branching address
+            use_register_for_branching_address => use_register_for_branching_address,
+            -- Uses the second register as branching offset
+            use_register_for_branching_offset  => use_register_for_branching_offset,
+            -- Tests if the flag is not set
+            branch_invert_flag                 => branch_invert_flag,
             -- Enables writing in the register
-            write_register          => write_register,
+            write_register                     => cu_write_register,
             -- Enables writing in the RAM
-            write_ram               => write_ram
+            write_ram                          => write_ram
         );
 
     -- Instantiation of the ALU, it is linked to the flag and register banks and the RAM
@@ -217,7 +275,7 @@ begin
             output   => alu_output
         );
 
-    -- Instantiation of the flag bank, it is linked to the ALU (TODO jump unit)
+    -- Instantiation of the flag bank, it is linked to the ALU
     flag_bank_inst : component flag_bank
         port map(
             -- Clock used to update the flags
@@ -266,6 +324,17 @@ begin
             value_in  => ram_load,
             -- Output of the RAM
             value_out => ram_output
+        );
+
+    branching_unit_inst : component branching_unit
+        port map(
+            branching_address      => branching_address_input,
+            offset                 => branching_offset,
+            use_offset             => use_branching_offset,
+            flag                   => flag_output,
+            is_inverted_test       => branch_invert_flag,
+            out_program_counter    => branching_address_output,
+            update_program_counter => branch_write_register
         );
 
 end architecture RTL;
