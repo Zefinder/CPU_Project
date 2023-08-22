@@ -7,5 +7,6 @@
   <Mappings Location="instruction_memory.vhd" Library="not mapped"/>
   <Mappings Location="Common Libraries/STD" Library="std"/>
   <Mappings Location="Packages/cpu_utils.vhd" Library="utils"/>
+  <Mappings Location="Packages/test_utils.vhd" Library="utils"/>
   <Mappings Location="" Library="work"/>
 </com.sigasi.hdt.shared.librarymapping.model:LibraryMappings>
