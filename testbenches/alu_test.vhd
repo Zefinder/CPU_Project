@@ -3,6 +3,7 @@ library utils;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use utils.cpu_utils.all;
+use utils.test_utils.all;
 
 entity alu_test is
 end entity alu_test;
@@ -308,6 +309,54 @@ begin
                         end if;
                     end if;
 
+                when 8 =>
+                    assert output = zero_vector
+                    report print_error("Error 'sec':", zero_vector, output) severity error;
+
+                    assert flags(FLAG_C) = '1'
+                    report print_bit_error("Error 'sec':", '1', flags(FLAG_C)) severity error;
+                when 9 =>
+                    assert output = zero_vector
+                    report print_error("Error 'sez':", zero_vector, output) severity error;
+
+                    assert flags(FLAG_Z) = '1'
+                    report print_bit_error("Error 'sez':", '1', flags(FLAG_Z)) severity error;
+                when 10 =>
+                    assert output = zero_vector
+                    report print_error("Error 'sen':", zero_vector, output) severity error;
+
+                    assert flags(FLAG_N) = '1'
+                    report print_bit_error("Error 'sen':", '1', flags(FLAG_N)) severity error;
+                when 11 =>
+                    assert output = zero_vector
+                    report print_error("Error 'sev':", zero_vector, output) severity error;
+
+                    assert flags(FLAG_O) = '1'
+                    report print_bit_error("Error 'sev':", '1', flags(FLAG_O)) severity error;
+                when 12 =>
+                    assert output = zero_vector
+                    report print_error("Error 'clc':", zero_vector, output) severity error;
+
+                    assert flags(FLAG_C) = '0'
+                    report print_bit_error("Error 'clc':", '0', flags(FLAG_C)) severity error;
+                when 13 =>
+                    assert output = zero_vector
+                    report print_error("Error 'clz':", zero_vector, output) severity error;
+
+                    assert flags(FLAG_Z) = '0'
+                    report print_bit_error("Error 'clz':", '0', flags(FLAG_Z)) severity error;
+                when 14 =>
+                    assert output = zero_vector
+                    report print_error("Error 'cln':", zero_vector, output) severity error;
+
+                    assert flags(FLAG_N) = '0'
+                    report print_bit_error("Error 'cln':", '0', flags(FLAG_N)) severity error;
+                when 15 =>
+                    assert output = zero_vector
+                    report print_error("Error 'clv':", zero_vector, output) severity error;
+
+                    assert flags(FLAG_O) = '0'
+                    report print_bit_error("Error 'clv':", '0', flags(FLAG_O)) severity error;
                 when others => null;
             end case;
 
@@ -340,7 +389,7 @@ begin
                 value_c_in     := '1';
                 int_value_c_in := 1;
             end if;
- 
+
             --Assigning values
             a        <= std_logic_vector(to_unsigned(value_a, DATA_SIZE));
             b        <= std_logic_vector(to_unsigned(value_b, DATA_SIZE));

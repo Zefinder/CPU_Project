@@ -26,6 +26,8 @@ entity control_unit is
         ram_address                        : out std_logic_vector(DATA_SIZE - 1 downto 0);
         -- Uses the result of the ALU
         use_alu                            : out std_logic;
+        -- Updates only one flag (specified by __flag_address__)
+        update_one_flag                    : out std_logic;
         -- Uses the content of a register and outputs it to the first output (specified by __register_address_read_1__)
         use_register_1                     : out std_logic;
         -- Uses the content of a register and outputs it to the second output (specified by __register_address_read_2__)
@@ -59,7 +61,7 @@ end entity control_unit;
 -- | Bit position | Function |
 -- | :----------: | :------: |
 -- | Bit 7 | UNUSED |
--- | Bit 6 | UNUSED |
+-- | Bit 6 | ALU_SEL_3 |
 -- | Bit 5 | USE_REG_2 |
 -- | Bit 4 | USE_REG_1 |
 -- | Bit 3 | EN_ALU (Always 1) |
@@ -96,6 +98,8 @@ architecture RTL of control_unit is
     -- ALU opcode bits (still unused bit 6 and 7)
     -- TODO Bit that inputs the result of the ALU in the memory
 
+    -- Bit representing the fourth ALU selector bit
+    constant ALU_SEL_3 : natural := 6;
     -- Bit representing the usage of the second register
     constant USE_REG_2 : natural := 5;
     -- Bit representing the usage of the first register
@@ -155,13 +159,14 @@ begin
         instruction_b       <= instruction_vector(2 * DATA_SIZE - 1 downto DATA_SIZE);
         instruction_address <= instruction_vector(DATA_SIZE - 1 downto 0);
 
-        alu_selector <= instruction_opcode(ALU_SEL_2) & instruction_opcode(ALU_SEL_1) & instruction_opcode(ALU_SEL_0);
+        alu_selector    <= instruction_opcode(ALU_SEL_3) & instruction_opcode(ALU_SEL_2) & instruction_opcode(ALU_SEL_1) & instruction_opcode(ALU_SEL_0);
+        update_one_flag <= instruction_opcode(ALU_SEL_3);
 
         operand1 <= instruction_a;
         operand2 <= instruction_b;
 
-        register_address_read_1 <= instruction_address(DATA_SIZE - 1 downto DATA_SIZE / 2);
-        register_address_read_2 <= instruction_address(DATA_SIZE / 2 - 1 downto 0);
+        register_address_read_1 <= instruction_a(REGISTER_SELECTOR_SIZE - 1 downto 0);
+        register_address_read_2 <= instruction_b(REGISTER_SELECTOR_SIZE - 1 downto 0);
 
         ram_address <= instruction_address;
 

@@ -39,6 +39,7 @@ architecture RTL of cpu is
             flag_address                       : out std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
             ram_address                        : out std_logic_vector(DATA_SIZE - 1 downto 0);
             use_alu                            : out std_logic;
+            update_one_flag                    : out std_logic;
             use_register_1                     : out std_logic;
             use_register_2                     : out std_logic;
             use_memory_for_register            : out std_logic;
@@ -56,9 +57,9 @@ architecture RTL of cpu is
     component alu
         port(
             a, b     : in  std_logic_vector(DATA_SIZE - 1 downto 0);
-            selector : in  std_logic_vector(2 downto 0);
+            selector : in  std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
             c_in     : in  std_logic;
-            flags    : out std_logic_vector(3 downto 0);
+            flags    : out std_logic_vector(2 ** FLAG_SELECTOR_SIZE - 1 downto 0);
             output   : out std_logic_vector(DATA_SIZE - 1 downto 0)
         );
     end component alu;
@@ -156,6 +157,8 @@ architecture RTL of cpu is
     signal flag_output                        : std_logic;
     -- Uses the result of the ALU
     signal use_alu                            : std_logic;
+    -- Updates only one flag
+    signal update_one_flag                    : std_logic;
     -- Uses the first register as an operand for the ALU or to load in the RAM
     signal use_register_1                     : std_logic;
     -- Uses the second register as an operand for the ALU or to load in the RAM
@@ -234,6 +237,8 @@ begin
             ram_address                        => ram_address,
             -- Enables the ALU
             use_alu                            => use_alu,
+            -- Updates only one flag
+            update_one_flag                    => update_one_flag,
             -- Enables the first register output
             use_register_1                     => use_register_1,
             -- Enables the second register output

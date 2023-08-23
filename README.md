@@ -9,12 +9,12 @@ I will probably make a compiler, an interpreter and documentation of this CPU so
 
 This CPU has a few components. The one that are ok are marked with (\/) currently developped are marked with (\*), the ones that are developped but where tests are lacking or are simply not implemented are marked with (+), the ones that still need to be developped are marked with (#) and finally the ones that will be improved are marked with ($).
 
-- ALU				(\/)($) (Add a new bit of selector for flag set and reset)
+- ALU				(\/) (Add a new bit of selector for flag set and reset)
 - Register bank 	(\/)
-- Flag bank			(\/)($) (To follow the new ALU)
+- Flag bank			(\*)($) (To follow the new ALU)
 - Branching unit	(\/)
 - RAM memory		(\/)($)
-- Control unit      (\/)($)
+- Control unit      (\*)(+)($)
 - CPU as a whole    (\*)(+)
 
 The further developpement I can see is to find an FPGA where you can plug a mass memory to store programs on and configure the FPGA to start on a specific address of the memory to run a specific program. This configuration will load the program into the CPU instruction memory and then launch it. It will make the CPU easier to use (not modifying the constant array each time! Efficiency go brrr). Hence the few other components I see to add:
@@ -180,7 +180,7 @@ There are a few things to know to fully understand how to write assembly for thi
 - A and B are basically the input of the ALU as well as the size of a register. Changing ones size implies also changing the other to have the whole structure working.
 - The address is the size of the RAM address and *only for now* twice the size of the register selector. This will change but be sure to verify the following assumption: `size_address >= 2*size_register_selector`.
 - Register address for writing is always the least significant bits in the address part. For a **8-bits address** and **4-bits selector**, it will be `XXXXAAAA` (A being address and X ignored).
-- Register address for reading is the least significant bits 
+- Register address for reading is the least significant bits of the A or B operand (for respectively the first and second register). 
 - The **LR** and **PC** registers are special, they will be (because not yet implemented) the size of an address. They are located at address `0xE` and `0xF`, if the normal register output is too small, they will be truncated.
 
 ### Instruction map

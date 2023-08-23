@@ -36,6 +36,8 @@ architecture testbench of control_unit_test is
         );
     end component control_unit;
 
+    -- Bit representing the fourth ALU selector bit
+    constant ALU_SEL_3 : natural := 6;
     -- Bit representing the usage of the second register
     constant USE_REG_2 : natural := 5;
     -- Bit representing the usage of the first register
@@ -144,7 +146,7 @@ begin
         -- Assert values
         instruction_opcode     := instruction_vector(4 * DATA_SIZE - 1 downto 3 * DATA_SIZE);
         opcode_variable_vector := std_logic_vector(to_unsigned(opcode_variable, DATA_SIZE));
-        alu_selector_variable  := instruction_opcode(ALU_SEL_2) & instruction_opcode(ALU_SEL_1) & instruction_opcode(ALU_SEL_0);
+        alu_selector_variable  := instruction_opcode(ALU_SEL_3) & instruction_opcode(ALU_SEL_2) & instruction_opcode(ALU_SEL_1) & instruction_opcode(ALU_SEL_0);
         flag_selector_variable := instruction_opcode(FL_SEL_1) & instruction_opcode(FL_SEL_0);
 
         assert instruction_opcode = opcode_variable_vector
@@ -159,10 +161,10 @@ begin
         assert alu_selector = alu_selector_variable
         report print_error("Wrong ALU selector", alu_selector_variable, alu_selector) severity error;
 
-        assert register_address_read_1 = instruction_address(DATA_SIZE - 1 downto DATA_SIZE / 2)
+        assert register_address_read_1 = instruction_a(REGISTER_SELECTOR_SIZE - 1 downto 0)
         report print_error("Wrong first register address", instruction_address(DATA_SIZE - 1 downto DATA_SIZE / 2), register_address_read_1) severity error;
 
-        assert register_address_read_2 = instruction_address(DATA_SIZE / 2 - 1 downto 0)
+        assert register_address_read_2 = instruction_b(REGISTER_SELECTOR_SIZE - 1 downto 0)
         report print_error("Wrong second register address", instruction_address(DATA_SIZE / 2 - 1 downto 0), register_address_read_2) severity error;
 
         assert ram_address = instruction_address

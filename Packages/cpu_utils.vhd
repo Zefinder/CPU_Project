@@ -5,7 +5,7 @@ use ieee.numeric_std.all;
 package cpu_utils is
     constant INSTRUCTION_SIZE       : natural := 32; -- Size of an instruction
     constant DATA_SIZE              : natural := 8;  -- Size of an data (data includes register size, operand size, addresses size)
-    constant ALU_SELECTOR_SIZE      : natural := 3;  -- Size of the ALU selector
+    constant ALU_SELECTOR_SIZE      : natural := 4;  -- Size of the ALU selector
     constant REGISTER_SELECTOR_SIZE : natural := 4;  -- Size of the register selector
     constant FLAG_SELECTOR_SIZE     : natural := 2;  -- Size of the flag selector
     
