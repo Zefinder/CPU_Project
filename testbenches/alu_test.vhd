@@ -11,32 +11,27 @@ architecture testbench of alu_test is
     component alu
         port(
             a, b     : in  std_logic_vector(DATA_SIZE - 1 downto 0);
-            selector : in  std_logic_vector(2 downto 0);
+            selector : in  std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
             c_in     : in  std_logic;
-            flags    : out std_logic_vector(3 downto 0);
+            flags    : out std_logic_vector(2 ** FLAG_SELECTOR_SIZE - 1 downto 0);
             output   : out std_logic_vector(DATA_SIZE - 1 downto 0)
         );
     end component alu;
     for all : alu use entity work.alu(RTL);
 
-    constant DATA_SIZE   : natural                                  := 8;
-    constant C           : natural                                  := 0; -- Selector for C flag (carry)
-    constant Z           : natural                                  := 1; -- Selector for Z flag (zero)
-    constant N           : natural                                  := 2; -- Selector for N flag (negative)
-    constant O           : natural                                  := 3; -- Selector for O flag (overflow)
     constant zero_vector : std_logic_vector(DATA_SIZE - 1 downto 0) := (others => '0');
 
-    signal a, b     : std_logic_vector(DATA_SIZE - 1 downto 0) := x"00";
-    signal selector : std_logic_vector(2 downto 0)             := "000";
-    signal c_in     : std_logic                                := '0';
-    signal flags    : std_logic_vector(3 downto 0);
+    signal a, b     : std_logic_vector(DATA_SIZE - 1 downto 0)         := (others => '0');
+    signal selector : std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0) := (others => '0');
+    signal c_in     : std_logic                                        := '0';
+    signal flags    : std_logic_vector(2 ** FLAG_SELECTOR_SIZE - 1 downto 0);
     signal output   : std_logic_vector(DATA_SIZE - 1 downto 0);
 
     function report_error(arg_a, arg_b : std_logic_vector(DATA_SIZE - 1 downto 0); arg_c_in : std_logic; expected, got : std_logic_vector(DATA_SIZE - 1 downto 0)) return string is
-        constant hex_a        : string(1 to 2) := to_hstring(arg_a);
-        constant hex_b        : string(1 to 2) := to_hstring(arg_b);
-        constant hex_expected : string(1 to 2) := to_hstring(expected);
-        constant hex_got      : string(1 to 2) := to_hstring(got);
+        constant hex_a        : string(1 to 1 + ((DATA_SIZE - 1) / 4)) := to_hstring(arg_a);
+        constant hex_b        : string(1 to 1 + ((DATA_SIZE - 1) / 4)) := to_hstring(arg_b);
+        constant hex_expected : string(1 to 1 + ((DATA_SIZE - 1) / 4)) := to_hstring(expected);
+        constant hex_got      : string(1 to 1 + ((DATA_SIZE - 1) / 4)) := to_hstring(got);
 
         variable val_c_in : string(1 to 1);
     begin
@@ -75,9 +70,9 @@ begin
         -- Test if needs init
         if init = 0 then
             init     := 1;
-            a        <= x"00";
-            b        <= x"00";
-            selector <= "000";
+            a        <= (others => '0');
+            b        <= (others => '0');
+            selector <= (others => '0');
             c_in     <= '0';
 
             report "Begin tests for alu (selector=0)" severity note;
@@ -96,23 +91,23 @@ begin
                                                        ) severity error;
 
                     if result > 2 ** DATA_SIZE - 1 then
-                        assert flags(C) = '1' report "Error '+': overflow, expected Carry flag C on" severity error;
-                        assert flags(O) = '1' report "Error '+': overflow, expected Overflow flag O on" severity error;
+                        assert flags(FLAG_C) = '1' report "Error '+': overflow, expected Carry flag C on" severity error;
+                        assert flags(FLAG_O) = '1' report "Error '+': overflow, expected Overflow flag O on" severity error;
                     else
-                        assert flags(C) = '0' report "Error '+': expected Carry flag C off" severity error;
-                        assert flags(O) = '0' report "Error '+': expected Overflow flag O off" severity error;
+                        assert flags(FLAG_C) = '0' report "Error '+': expected Carry flag C off" severity error;
+                        assert flags(FLAG_O) = '0' report "Error '+': expected Overflow flag O off" severity error;
                     end if;
 
                     if result mod 2 ** DATA_SIZE = 0 then
-                        assert flags(Z) = '1' report "Error '+': zero, expected Zero flag Z on" severity error;
+                        assert flags(FLAG_Z) = '1' report "Error '+': zero, expected Zero flag Z on" severity error;
                     else
-                        assert flags(Z) = '0' report "Error '+': non-zero, expected Zero flag Z off" severity error;
+                        assert flags(FLAG_Z) = '0' report "Error '+': non-zero, expected Zero flag Z off" severity error;
                     end if;
 
                     if result mod 2 ** DATA_SIZE >= 2 ** (DATA_SIZE - 1) then
-                        assert flags(N) = '1' report "Error '+': negative, expected Negative flag N on" severity error;
+                        assert flags(FLAG_N) = '1' report "Error '+': negative, expected Negative flag N on" severity error;
                     else
-                        assert flags(N) = '0' report "Error '+': non-negative, expected Negative flag N off" severity error;
+                        assert flags(FLAG_N) = '0' report "Error '+': non-negative, expected Negative flag N off" severity error;
                     end if;
 
                 when 1 =>
@@ -127,23 +122,23 @@ begin
                                                        ) severity error;
 
                     if result > 2 ** DATA_SIZE - 1 or result < 0 then
-                        assert flags(C) = '1' report "Error '-': overflow, expected Carry flag C on" severity error;
-                        assert flags(O) = '1' report "Error '-': overflow, expected Overflow flag O on" severity error;
+                        assert flags(FLAG_C) = '1' report "Error '-': overflow, expected Carry flag C on" severity error;
+                        assert flags(FLAG_O) = '1' report "Error '-': overflow, expected Overflow flag O on" severity error;
                     else
-                        assert flags(C) = '0' report "Error '-': expected Carry flag C off" severity error;
-                        assert flags(O) = '0' report "Error '-': expected Overflow flag O off" severity error;
+                        assert flags(FLAG_C) = '0' report "Error '-': expected Carry flag C off" severity error;
+                        assert flags(FLAG_O) = '0' report "Error '-': expected Overflow flag O off" severity error;
                     end if;
 
                     if result mod 2 ** DATA_SIZE = 0 then
-                        assert flags(Z) = '1' report "Error '-': zero, expected Zero flag Z on" severity error;
+                        assert flags(FLAG_Z) = '1' report "Error '-': zero, expected Zero flag Z on" severity error;
                     else
-                        assert flags(Z) = '0' report "Error '-': non-zero, expected Zero flag Z off" severity error;
+                        assert flags(FLAG_Z) = '0' report "Error '-': non-zero, expected Zero flag Z off" severity error;
                     end if;
 
                     if result mod 2 ** DATA_SIZE >= 2 ** (DATA_SIZE - 1) then
-                        assert flags(N) = '1' report "Error '-': negative, expected Negative flag N on" severity error;
+                        assert flags(FLAG_N) = '1' report "Error '-': negative, expected Negative flag N on" severity error;
                     else
-                        assert flags(N) = '0' report "Error '-': non-negative, expected Negative flag N off" severity error;
+                        assert flags(FLAG_N) = '0' report "Error '-': non-negative, expected Negative flag N off" severity error;
                     end if;
 
                 when 2 =>
@@ -159,26 +154,26 @@ begin
 
                     if result > 2 ** DATA_SIZE - 1 then
                         if to_unsigned(result, 2 * DATA_SIZE)(DATA_SIZE) = '1' then
-                            assert flags(C) = '1' report "Error '*': overflow, expected Carry flag C on" severity error;
+                            assert flags(FLAG_C) = '1' report "Error '*': overflow, expected Carry flag C on" severity error;
                         else
-                            assert flags(C) = '0' report "Error '*': expected Carry flag C off" severity error;
+                            assert flags(FLAG_C) = '0' report "Error '*': expected Carry flag C off" severity error;
                         end if;
-                        assert flags(O) = '1' report "Error '*': overflow, expected Overflow flag O on" severity error;
+                        assert flags(FLAG_O) = '1' report "Error '*': overflow, expected Overflow flag O on" severity error;
                     else
-                        assert flags(C) = '0' report "Error '*': expected Carry flag C off" severity error;
-                        assert flags(O) = '0' report "Error '*': expected Overflow flag O off" severity error;
+                        assert flags(FLAG_C) = '0' report "Error '*': expected Carry flag C off" severity error;
+                        assert flags(FLAG_O) = '0' report "Error '*': expected Overflow flag O off" severity error;
                     end if;
 
                     if result mod 2 ** DATA_SIZE = 0 then
-                        assert flags(Z) = '1' report "Error '*': zero, expected Zero flag Z on" severity error;
+                        assert flags(FLAG_Z) = '1' report "Error '*': zero, expected Zero flag Z on" severity error;
                     else
-                        assert flags(Z) = '0' report "Error '*': non-zero, expected Zero flag Z off" severity error;
+                        assert flags(FLAG_Z) = '0' report "Error '*': non-zero, expected Zero flag Z off" severity error;
                     end if;
 
                     if result mod 2 ** DATA_SIZE >= 2 ** (DATA_SIZE - 1) then
-                        assert flags(N) = '1' report "Error '*': negative, expected Negative flag N on" severity error;
+                        assert flags(FLAG_N) = '1' report "Error '*': negative, expected Negative flag N on" severity error;
                     else
-                        assert flags(N) = '0' report "Error '*': non-negative, expected Negative flag N off" severity error;
+                        assert flags(FLAG_N) = '0' report "Error '*': non-negative, expected Negative flag N off" severity error;
                     end if;
 
                 when 3 =>
@@ -192,19 +187,19 @@ begin
                                                           got      => output
                                                          ) severity error;
 
-                    assert flags(C) = '0' report "Error 'and': no carry for this operation, expected Carry flag C off" severity error;
-                    assert flags(O) = '0' report "Error 'and': no carry for this operation, expected Overflow flag O off" severity error;
+                    assert flags(FLAG_C) = '0' report "Error 'and': no carry for this operation, expected Carry flag C off" severity error;
+                    assert flags(FLAG_O) = '0' report "Error 'and': no carry for this operation, expected Overflow flag O off" severity error;
 
                     if result_vector = zero_vector then
-                        assert flags(Z) = '1' report "Error 'and': zero, expected Zero flag Z on" severity error;
+                        assert flags(FLAG_Z) = '1' report "Error 'and': zero, expected Zero flag Z on" severity error;
                     else
-                        assert flags(Z) = '0' report "Error 'and': non-zero, expected Zero flag Z off" severity error;
+                        assert flags(FLAG_Z) = '0' report "Error 'and': non-zero, expected Zero flag Z off" severity error;
                     end if;
 
                     if result_vector(DATA_SIZE - 1) = '1' then
-                        assert flags(N) = '1' report "Error 'and': negative, expected Negative flag N on" severity error;
+                        assert flags(FLAG_N) = '1' report "Error 'and': negative, expected Negative flag N on" severity error;
                     else
-                        assert flags(N) = '0' report "Error 'and': non-negative, expected Negative flag N off" severity error;
+                        assert flags(FLAG_N) = '0' report "Error 'and': non-negative, expected Negative flag N off" severity error;
                     end if;
 
                 when 4 =>
@@ -218,19 +213,19 @@ begin
                                                          got      => output
                                                         ) severity error;
 
-                    assert flags(C) = '0' report "Error 'or': no carry for this operation, expected Carry flag C off" severity error;
-                    assert flags(O) = '0' report "Error 'or': no carry for this operation, expected Overflow flag O off" severity error;
+                    assert flags(FLAG_C) = '0' report "Error 'or': no carry for this operation, expected Carry flag C off" severity error;
+                    assert flags(FLAG_O) = '0' report "Error 'or': no carry for this operation, expected Overflow flag O off" severity error;
 
                     if result_vector = zero_vector then
-                        assert flags(Z) = '1' report "Error 'or': zero, expected Zero flag Z on" severity error;
+                        assert flags(FLAG_Z) = '1' report "Error 'or': zero, expected Zero flag Z on" severity error;
                     else
-                        assert flags(Z) = '0' report "Error 'or': non-zero, expected Zero flag Z off" severity error;
+                        assert flags(FLAG_Z) = '0' report "Error 'or': non-zero, expected Zero flag Z off" severity error;
                     end if;
 
                     if result_vector(DATA_SIZE - 1) = '1' then
-                        assert flags(N) = '1' report "Error 'or': negative, expected Negative flag N on" severity error;
+                        assert flags(FLAG_N) = '1' report "Error 'or': negative, expected Negative flag N on" severity error;
                     else
-                        assert flags(N) = '0' report "Error 'or': non-negative, expected Negative flag N off" severity error;
+                        assert flags(FLAG_N) = '0' report "Error 'or': non-negative, expected Negative flag N off" severity error;
                     end if;
 
                 when 5 =>
@@ -244,19 +239,19 @@ begin
                                                           got      => output
                                                          ) severity error;
 
-                    assert flags(C) = '0' report "Error 'xor': no carry for this operation, expected Carry flag C off" severity error;
-                    assert flags(O) = '0' report "Error 'xor': no carry for this operation, expected Overflow flag O off" severity error;
+                    assert flags(FLAG_C) = '0' report "Error 'xor': no carry for this operation, expected Carry flag C off" severity error;
+                    assert flags(FLAG_O) = '0' report "Error 'xor': no carry for this operation, expected Overflow flag O off" severity error;
 
                     if result_vector = zero_vector then
-                        assert flags(Z) = '1' report "Error 'xor': zero, expected Zero flag Z on" severity error;
+                        assert flags(FLAG_Z) = '1' report "Error 'xor': zero, expected Zero flag Z on" severity error;
                     else
-                        assert flags(Z) = '0' report "Error 'xor': non-zero, expected Zero flag Z off" severity error;
+                        assert flags(FLAG_Z) = '0' report "Error 'xor': non-zero, expected Zero flag Z off" severity error;
                     end if;
 
                     if result_vector(DATA_SIZE - 1) = '1' then
-                        assert flags(N) = '1' report "Error 'xor': negative, expected Negative flag N on" severity error;
+                        assert flags(FLAG_N) = '1' report "Error 'xor': negative, expected Negative flag N on" severity error;
                     else
-                        assert flags(N) = '0' report "Error 'xor': non-negative, expected Negative flag N off" severity error;
+                        assert flags(FLAG_N) = '0' report "Error 'xor': non-negative, expected Negative flag N off" severity error;
                     end if;
 
                 when 6 =>
@@ -270,19 +265,19 @@ begin
                                                           got      => output
                                                          ) severity error;
 
-                    assert flags(C) = '0' report "Error 'not': no carry for this operation, expected Carry flag C off" severity error;
-                    assert flags(O) = '0' report "Error 'not': no carry for this operation, expected Overflow flag O off" severity error;
+                    assert flags(FLAG_C) = '0' report "Error 'not': no carry for this operation, expected Carry flag C off" severity error;
+                    assert flags(FLAG_O) = '0' report "Error 'not': no carry for this operation, expected Overflow flag O off" severity error;
 
                     if result_vector = zero_vector then
-                        assert flags(Z) = '1' report "Error 'not': zero, expected Zero flag Z on" severity error;
+                        assert flags(FLAG_Z) = '1' report "Error 'not': zero, expected Zero flag Z on" severity error;
                     else
-                        assert flags(Z) = '0' report "Error 'not': non-zero, expected Zero flag Z off" severity error;
+                        assert flags(FLAG_Z) = '0' report "Error 'not': non-zero, expected Zero flag Z off" severity error;
                     end if;
 
                     if result_vector(DATA_SIZE - 1) = '1' then
-                        assert flags(N) = '1' report "Error 'not': negative, expected Negative flag N on" severity error;
+                        assert flags(FLAG_N) = '1' report "Error 'not': negative, expected Negative flag N on" severity error;
                     else
-                        assert flags(N) = '0' report "Error 'not': non-negative, expected Negative flag N off" severity error;
+                        assert flags(FLAG_N) = '0' report "Error 'not': non-negative, expected Negative flag N off" severity error;
                     end if;
                 when 7 =>
                     result_vector := std_logic_vector(to_unsigned(value_a, DATA_SIZE));
@@ -290,26 +285,26 @@ begin
                     assert output = result_vector
                     report "Error 'cmp': " & report_error(arg_a    => a,
                                                           arg_b    => b,
-                                                          arg_c_in => c_in, 
+                                                          arg_c_in => c_in,
                                                           expected => result_vector,
                                                           got      => output
                                                          ) severity error;
 
                     if result_vector(DATA_SIZE - 1) = '1' then
-                        assert flags(N) = '1' report "Error 'cmp': expected Negative flag N on" severity error;
-                        assert flags(C) = '0' report "Error 'cmp': expected Carry flag C off" severity error;
-                        assert flags(Z) = '0' report "Error 'cmp': expected Zero flag Z off" severity error;
-                        assert flags(O) = '0' report "Error 'cmp': expected Overflow flag O off" severity error;
+                        assert flags(FLAG_N) = '1' report "Error 'cmp': expected Negative flag N on" severity error;
+                        assert flags(FLAG_C) = '0' report "Error 'cmp': expected Carry flag C off" severity error;
+                        assert flags(FLAG_Z) = '0' report "Error 'cmp': expected Zero flag Z off" severity error;
+                        assert flags(FLAG_O) = '0' report "Error 'cmp': expected Overflow flag O off" severity error;
                     else
-                        assert flags(N) = '0' report "Error 'cmp': expected Negative flag N off" severity error;
-                        assert flags(O) = '1' report "Error 'cmp': expected Overflow flag O on" severity error;
+                        assert flags(FLAG_N) = '0' report "Error 'cmp': expected Negative flag N off" severity error;
+                        assert flags(FLAG_O) = '1' report "Error 'cmp': expected Overflow flag O on" severity error;
 
                         if result_vector = zero_vector then
-                            assert flags(Z) = '1' report "Error 'cmp': expected Zero flag Z on" severity error;
-                            assert flags(C) = '0' report "Error 'cmp': expected Carry flag C off" severity error;
+                            assert flags(FLAG_Z) = '1' report "Error 'cmp': expected Zero flag Z on" severity error;
+                            assert flags(FLAG_C) = '0' report "Error 'cmp': expected Carry flag C off" severity error;
                         else
-                            assert flags(Z) = '0' report "Error 'cmp': expected Zero flag Z off" severity error;
-                            assert flags(C) = '1' report "Error 'cmp': expected Carry flag C on" severity error;
+                            assert flags(FLAG_Z) = '0' report "Error 'cmp': expected Zero flag Z off" severity error;
+                            assert flags(FLAG_C) = '1' report "Error 'cmp': expected Carry flag C on" severity error;
                         end if;
                     end if;
 
@@ -329,8 +324,12 @@ begin
                     if value_a = 2 ** DATA_SIZE - 1 then
                         value_a   := 0;
                         value_sel := value_sel + 1;
-                        report "Next operation! (selector=" & integer'image(value_sel) & ")" severity note;
-
+                        if value_sel = 2 ** ALU_SELECTOR_SIZE then
+                            report "End of tests!" severity note;
+                            wait;
+                        else
+                            report "Next operation! (selector=" & integer'image(value_sel) & ")" severity note;
+                        end if;
                     else
                         value_a := value_a + 1;
                     end if;
@@ -341,17 +340,12 @@ begin
                 value_c_in     := '1';
                 int_value_c_in := 1;
             end if;
-
-            -- Test if finished
-            if value_sel = 8 then
-                assert false report "End of tests!" severity note;
-                wait;
-            else
-                a        <= std_logic_vector(to_unsigned(value_a, DATA_SIZE));
-                b        <= std_logic_vector(to_unsigned(value_b, DATA_SIZE));
-                selector <= std_logic_vector(to_unsigned(value_sel, selector'length));
-                c_in     <= value_c_in;
-            end if;
+ 
+            --Assigning values
+            a        <= std_logic_vector(to_unsigned(value_a, DATA_SIZE));
+            b        <= std_logic_vector(to_unsigned(value_b, DATA_SIZE));
+            selector <= std_logic_vector(to_unsigned(value_sel, ALU_SELECTOR_SIZE));
+            c_in     <= value_c_in;
             wait for 5 ns;
         end if;
     end process alu_process;
