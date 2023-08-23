@@ -179,21 +179,22 @@ There are a few things to know to fully understand how to write assembly for thi
 - The opcode allows a lot of instruction and thus have a lot of options (cf. *Addressing mode* and *Instruction map*)
 - A and B are basically the input of the ALU as well as the size of a register. Changing ones size implies also changing the other to have the whole structure working.
 - The address is the size of the RAM address and *only for now* twice the size of the register selector. This will change but be sure to verify the following assumption: `size_address >= 2*size_register_selector`.
-- Register address is always in the address part. For a **8-bits address** and **4-bits selector**, it will be `11112222` (1 being register 1 and 2 being register 2). If the address is bigger, the remaining bits are ignored. With the same example but with a **12-bits address**, it will be `11112222XXXX` (X being ignored). 
+- Register address for writing is always the least significant bits in the address part. For a **8-bits address** and **4-bits selector**, it will be `XXXXAAAA` (A being address and X ignored).
+- Register address for reading is the least significant bits 
 - The **LR** and **PC** registers are special, they will be (because not yet implemented) the size of an address. They are located at address `0xE` and `0xF`, if the normal register output is too small, they will be truncated.
 
 ### Instruction map
 This map does not contain any information about addressing mode, for this refer to the (not yet written) explanatory pdf of the CPU.
 |        |  0X   |  1X   |  2X   |  3X   |  4X   |  5X   |  6X   |  7X   |  8X   |  9X   |  AX   |  BX   |    CX     |     DX      |     EX      |    FX    |
 | :----: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :-------: | :---------: | :---------: | :------: |
-| **X0** |  NOP  | NOP\* | NOP\* | NOP\* |  MOV  | MOV\* |  MOV  | MOV\* |  STR  |  STR  | STR\* | STR\* | STRMV\*\* |  STREGMV\*  | STRMEMV\*\* | SWAP\*\* |
+| **X0** |  NOP  | NOP\* | NOP\* | NOP\* |  MOV  | MOV\* |  MOV  | MOV\* |  STR  |  STR  | STR\* | STR\* | STRMV\*\* | STREGMV\*\* | STRMEMV\*\* | SWAP\*\* |
 | **X1** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | MOV\* | MOV\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STREGMV\*\* | STRMEMV\*\* | SWAP\*\* |
-| **X2** |       |       |       |       |       |       |       |       |       |       |       |       |           |             |             |          |
-| **X3** |       |       |       |       |       |       |       |       |       |       |       |       |           |             |             |          |
+| **X2** |  BCS  |  BCS  |  BCS  |  BCS  |  BEQ  |  BEQ  |  BEQ  |  BEQ  |  BMI  |  BMI  |  BMI  |  BMI  |    BVS    |     BVS     |     BVS     |   BVS    |
+| **X3** |  BCS  |  BCS  |  BCS  |  BCS  |  BEQ  |  BEQ  |  BEQ  |  BEQ  |  BMI  |  BMI  |  BMI  |  BMI  |    BVS    |     BVS     |     BVS     |   BVS    |
 | **X4** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | MOV\* | MOV\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STREGMV\*\* | STRMEMV\*\* | SWAP\*\* |
 | **X5** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | MOV\* | MOV\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STREGMV\*\* | STRMEMV\*\* | SWAP\*\* |
-| **X6** |       |       |       |       |       |       |       |       |       |       |       |       |           |             |             |          |
-| **X7** |       |       |       |       |       |       |       |       |       |       |       |       |           |             |             |          |
+| **X6** |  BCC  |  BCC  |  BCC  |  BCC  |  BNE  |  BNE  |  BNE  |  BNE  |  BPL  |  BPL  |  BPL  |  BPL  |    BVC    |     BVC     |     BVC     |   BVC    |
+| **X7** |  BCC  |  BCC  |  BCC  |  BCC  |  BNE  |  BNE  |  BNE  |  BNE  |  BPL  |  BPL  |  BPL  |  BPL  |    BVC    |     BVC     |     BVC     |   BVC    |
 | **X8** |  ADD  |  ADD  |  ADD  |  ADD  | ADD\* | ADD\* | ADD\* | ADD\* | ADD\* | ADD\* | ADD\* | ADD\* |   ADD\*   |    ADD\*    |    ADD\*    |  ADD\*   |
 | **X9** |  SUB  |  SUB  |  SUB  |  SUB  | SUB\* | SUB\* | SUB\* | SUB\* | SUB\* | SUB\* | SUB\* | SUB\* |   SUB\*   |    SUB\*    |    SUB\*    |  SUB\*   |
 | **XA** |  MUL  |  MUL  |  MUL  |  MUL  | MUL\* | MUL\* | MUL\* | MUL\* | MUL\* | MUL\* | MUL\* | MUL\* |   MUL\*   |    MUL\*    |    MUL\*    |  MUL\*   |
@@ -203,9 +204,9 @@ This map does not contain any information about addressing mode, for this refer 
 | **XE** |  NOT  |  NOT  | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* |   NOT\*   |    NOT\*    |    NOT\*    |  NOT\*   |
 | **XF** |  CMP  |  CMP  | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* |   CMP\*   |    CMP\*    |    CMP\*    |  CMP\*   |
 
-All opcodes marked with \* are opcodes that are not used with their defined opcode.
+All opcodes marked with \* are opcodes that are not used with their defined opcode (they are here since there are unused bits).
 
-All opcodes marked with \*\* are unofficial opcodes. They are opcodes that uses a combination of existing functionnality to do something that was not meant for because of clock cycles configuration. Most of them must be followed by a NOPs to be working normally. Empty cells are cells that are still in progress.
+All opcodes marked with \*\* are unofficial opcodes. They are opcodes that uses a combination of existing functionnality to do something that was not meant for because of clock cycles configuration. Most of them must be followed by a NOPs to be working normally. They exist because of the conception of the CPU allows it. 
 
 ## Why a CPU?
 Why not?
