@@ -9,9 +9,9 @@ I will probably make a compiler, an interpreter and documentation of this CPU so
 
 This CPU has a few components. The one that are ok are marked with (\/) currently developped are marked with (\*), the ones that are developped but where tests are lacking or are simply not implemented are marked with (+), the ones that still need to be developped are marked with (#) and finally the ones that will be improved are marked with ($).
 
-- ALU				(\/) (Add a new bit of selector for flag set and reset)
+- ALU				(\/)
 - Register bank 	(\/)
-- Flag bank			(\*)($) (To follow the new ALU)
+- Flag bank			(\/)
 - Branching unit	(\/)
 - RAM memory		(\/)($)
 - Control unit      (\*)(+)($)
