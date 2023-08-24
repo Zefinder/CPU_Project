@@ -176,12 +176,44 @@ An instruction is divided in 4 parts :
 - Address (RAM address size bytes)
 
 There are a few things to know to fully understand how to write assembly for this CPU: 
-- The opcode allows a lot of instruction and thus have a lot of options (cf. *Addressing mode* and *Instruction map*)
+- The opcode allows a lot of instruction and thus have a lot of options (see *Instruction opcode meaning*, *Addressing mode* and *Instruction map*)
 - A and B are basically the input of the ALU as well as the size of a register. Changing ones size implies also changing the other to have the whole structure working.
-- The address is the size of the RAM address and *only for now* twice the size of the register selector. This will change but be sure to verify the following assumption: `size_address >= 2*size_register_selector`.
+- The address is the size of the RAM address and *only for now* twice the size of the register selector. This will change but be sure to verify the following assumption: `size_address >= 2 * size_register_selector`.
 - Register address for writing is always the least significant bits in the address part. For a **8-bits address** and **4-bits selector**, it will be `XXXXAAAA` (A being address and X ignored).
 - Register address for reading is the least significant bits of the A or B operand (for respectively the first and second register). 
 - The **LR** and **PC** registers are special, they will be (because not yet implemented) the size of an address. They are located at address `0xE` and `0xF`, if the normal register output is too small, they will be truncated.
+
+### Instruction opcode meaning
+Each bit in the opcode means something for the operation. Changing the opcode can lead to a complete other operation (like from `MOV` *(0b01000000)* to `BEQ` *(0b01000010)* changing the bit 1) or to another addressing mode (like for `MOV` *0b01000000* and *0b01100000*). For more details about all instructions possible, see *Instruction map*. For more details about addressing modes, see *Addressing mode* (it's all pretty logic).
+
+All opcode specifications are detailed in the table and explanations below:
+|           | ALU operations |     | Branch operation |     | Store operation |
+| :-------: | :------------: | --- | :--------------: | --- | :-------------: |
+| **Bit 7** |     UNUSED     |     |    FLAG_SEL_1    |     |     STR_MEM     |
+| **Bit 6** |   ALU_SEL_3    |     |    FLAG_SEL_0    |     |     STR_REG     |
+| **Bit 5** |   USE_REG_2    |     |  USE_REG_OFFSET  |     |     USE_MEM     |
+| **Bit 4** |   USE_REG_1    |     |   USE_REG_ADDR   |     |     USE_REG     |
+| **Bit 3** |   EN_ALU (1)   |     |    EN_ALU (0)    |     |   EN_ALU (0)    |
+| **Bit 2** |   ALU_SEL_2    |     |     INV_FLAG     |     |     UNUSED      |
+| **Bit 1** |   ALU_SEL_1    |     |  EN_BRANCH (1)   |     |  EN_BRANCH (0)  |
+| **Bit 0** |   ALU_SEL_0    |     |  EN_REL_BRANCH   |     |     UNUSED      |
+
+Bit names have pretty self-explanatory names but it's always good to be sure of what you are dealing with. Note that this is a little explanation, for a complete one please read the pdf that will arrive maybe someday or read the code!
+- ALU_SEL: Selector of the ALU - 4 bits so 16 operations, 7 calculations operations and 9 flag manipulation operations
+- EN_ALU: Enables the ALU
+- USE_REG_i: Uses a register as i-th input of the ALU
+- FLAG_SEL: Selector for flag bank - 2 bits so 4 flags (in order Carry (C), Zero (Z), Negative (N), Overflow (V))
+- EN_BRANCH: Enables the branching unit
+- USE_REG_ADDR: Uses register as address for branching (can used to branch using PC)
+- USE_REG_OFFSET: Uses a register as offset for branching
+- EN_REL_BRANCH: Enables relative branching
+- INV_FLAG: Inverts the flag check condition, branch if flag not set
+- STR_MEM: Stores in memory
+- STR_REG: Stores in register
+- USE_MEM: Uses memory as register load
+- USE_REG: Uses register as memory load
+
+Yet another little remark: note that for a same category, if it can use two times a register it won't be necessarily the same! For example the ALU can use 2 registers, it is totally possible to do like `ADD R2 R0 R1`. Same thing for branching: `BCC ~R1` is the same thing as `BCC PC R1` and will branch if carry clear to `PC + R1`.
 
 ### Instruction map
 This map does not contain any information about addressing mode, for this refer to the (not yet written) explanatory pdf of the CPU.
