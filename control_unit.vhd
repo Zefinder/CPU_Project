@@ -188,7 +188,7 @@ begin
             use_branching_unit <= '0';
 
             -- We write in the register at the end of the ALU
-            write_register <= '1';
+            write_register <= not instruction_opcode(ALU_SEL_3);
 
             -- We don't write in the memory with the ALU (TODO need to change)
             write_ram <= '0';

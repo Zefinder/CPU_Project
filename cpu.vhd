@@ -66,11 +66,12 @@ architecture RTL of cpu is
 
     component flag_bank
         port(
-            clk           : in  std_logic;
-            flag_selector : in  std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
-            input_flags   : in  std_logic_vector(2 ** FLAG_SELECTOR_SIZE - 1 downto 0);
-            update_flags  : in  std_logic;
-            output_flag   : out std_logic
+            clk             : in  std_logic;
+            flag_selector   : in  std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
+            input_flags     : in  std_logic_vector(2 ** FLAG_SELECTOR_SIZE - 1 downto 0);
+            update_flags    : in  std_logic;
+            update_one_flag : in  std_logic;
+            output_flag     : out std_logic
         );
     end component flag_bank;
 
@@ -291,6 +292,8 @@ begin
             input_flags   => alu_flags_output,
             -- Enables flag update
             update_flags  => use_alu,
+            -- Updates only one flag
+            update_one_flag => update_one_flag,
             -- Output the flag chosen by the selector
             output_flag   => flag_output
         );

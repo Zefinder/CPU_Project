@@ -9,12 +9,12 @@ I will probably make a compiler, an interpreter and documentation of this CPU so
 
 This CPU has a few components. The one that are ok are marked with (\/) currently developped are marked with (\*), the ones that are developped but where tests are lacking or are simply not implemented are marked with (+), the ones that still need to be developped are marked with (#) and finally the ones that will be improved are marked with ($).
 
-- ALU				(\/)
+- ALU				(\/)($) (Add memory read or memory write (needs to be discussed...))
 - Register bank 	(\/)
 - Flag bank			(\/)
 - Branching unit	(\/)
 - RAM memory		(\/)($)
-- Control unit      (\*)(+)($)
+- Control unit      (\/)
 - CPU as a whole    (\*)(+)
 
 The further developpement I can see is to find an FPGA where you can plug a mass memory to store programs on and configure the FPGA to start on a specific address of the memory to run a specific program. This configuration will load the program into the CPU instruction memory and then launch it. It will make the CPU easier to use (not modifying the constant array each time! Efficiency go brrr). Hence the few other components I see to add:
@@ -195,14 +195,14 @@ This map does not contain any information about addressing mode, for this refer 
 | **X5** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | MOV\* | MOV\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STREGMV\*\* | STRMEMV\*\* | SWAP\*\* |
 | **X6** |  BCC  |  BCC  |  BCC  |  BCC  |  BNE  |  BNE  |  BNE  |  BNE  |  BPL  |  BPL  |  BPL  |  BPL  |    BVC    |     BVC     |     BVC     |   BVC    |
 | **X7** |  BCC  |  BCC  |  BCC  |  BCC  |  BNE  |  BNE  |  BNE  |  BNE  |  BPL  |  BPL  |  BPL  |  BPL  |    BVC    |     BVC     |     BVC     |   BVC    |
-| **X8** |  ADD  |  ADD  |  ADD  |  ADD  | ADD\* | ADD\* | ADD\* | ADD\* | ADD\* | ADD\* | ADD\* | ADD\* |   ADD\*   |    ADD\*    |    ADD\*    |  ADD\*   |
-| **X9** |  SUB  |  SUB  |  SUB  |  SUB  | SUB\* | SUB\* | SUB\* | SUB\* | SUB\* | SUB\* | SUB\* | SUB\* |   SUB\*   |    SUB\*    |    SUB\*    |  SUB\*   |
-| **XA** |  MUL  |  MUL  |  MUL  |  MUL  | MUL\* | MUL\* | MUL\* | MUL\* | MUL\* | MUL\* | MUL\* | MUL\* |   MUL\*   |    MUL\*    |    MUL\*    |  MUL\*   |
-| **XB** |  AND  |  AND  |  AND  |  AND  | AND\* | AND\* | AND\* | AND\* | AND\* | AND\* | AND\* | AND\* |   AND\*   |    AND\*    |    AND\*    |  AND\*   |
-| **XC** |  OR   |  OR   |  OR   |  OR   | OR\*  | OR\*  | OR\*  | OR\*  | OR\*  | OR\*  | OR\*  | OR\*  |   OR\*    |    OR\*     |    OR\*     |   OR\*   |
-| **XD** |  XOR  |  XOR  |  XOR  |  XOR  | XOR\* | XOR\* | XOR\* | XOR\* | XOR\* | XOR\* | XOR\* | XOR\* |   XOR\*   |    XOR\*    |    XOR\*    |  XOR\*   |
-| **XE** |  NOT  |  NOT  | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* | NOT\* |   NOT\*   |    NOT\*    |    NOT\*    |  NOT\*   |
-| **XF** |  CMP  |  CMP  | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* | CMP\* |   CMP\*   |    CMP\*    |    CMP\*    |  CMP\*   |
+| **X8** |  ADD  |  ADD  |  ADD  |  ADD  |  SEC  | SEC\* | SEC\* | SEC\* | ADD\* | ADD\* | ADD\* | ADD\* |   SEC\*   |    SEC\*    |    SEC\*    |  SEC\*   |
+| **X9** |  SUB  |  SUB  |  SUB  |  SUB  |  SEZ  | SEZ\* | SEZ\* | SEZ\* | SUB\* | SUB\* | SUB\* | SUB\* |   SEZ\*   |    SEZ\*    |    SEZ\*    |  SEZ\*   |
+| **XA** |  MUL  |  MUL  |  MUL  |  MUL  |  SEN  | SEN\* | SEN\* | SEN\* | MUL\* | MUL\* | MUL\* | MUL\* |   SEN\*   |    SEN\*    |    SEN\*    |  SEN\*   |
+| **XB** |  AND  |  AND  |  AND  |  AND  |  SEV  | SEV\* | SEV\* | SEV\* | AND\* | AND\* | AND\* | AND\* |   SEV\*   |    SEV\*    |    SEV\*    |  SEV\*   |
+| **XC** |  OR   |  OR   |  OR   |  OR   |  CLC  | CLC\* | CLC\* | CLC\* | OR\*  | OR\*  | OR\*  | OR\*  |   CLC\*   |    CLC\*    |    CLC\*    |  CLC\*   |
+| **XD** |  XOR  |  XOR  |  XOR  |  XOR  |  CLZ  | CLZ\* | CLZ\* | CLZ\* | XOR\* | XOR\* | XOR\* | XOR\* |   CLZ\*   |    CLZ\*    |    CLZ\*    |  CLZ\*   |
+| **XE** |  NOT  |  NOT  | NOT\* | NOT\* |  CLN  | CLN\* | CLN\* | CLN\* | NOT\* | NOT\* | NOT\* | NOT\* |   CLN\*   |    CLN\*    |    CLN\*    |  CLN\*   |
+| **XF** |  CMP  |  CMP  | CMP\* | CMP\* |  CLV  | CLV\* | CLV\* | CLV\* | CMP\* | CMP\* | CMP\* | CMP\* |   CLV\*   |    CLV\*    |    CLV\*    |  CLV\*   |
 
 All opcodes marked with \* are opcodes that are not used with their defined opcode (they are here since there are unused bits).
 

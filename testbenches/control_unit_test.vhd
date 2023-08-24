@@ -22,6 +22,7 @@ architecture testbench of control_unit_test is
             flag_address                       : out std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
             ram_address                        : out std_logic_vector(DATA_SIZE - 1 downto 0);
             use_alu                            : out std_logic;
+            update_one_flag                    : out std_logic;
             use_register_1                     : out std_logic;
             use_register_2                     : out std_logic;
             use_memory_for_register            : out std_logic;
@@ -91,6 +92,7 @@ architecture testbench of control_unit_test is
     signal flag_address                       : std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
     signal ram_address                        : std_logic_vector(DATA_SIZE - 1 downto 0);
     signal use_alu                            : std_logic;
+    signal update_one_flag                    : std_logic;
     signal use_register_1                     : std_logic;
     signal use_register_2                     : std_logic;
     signal use_memory_for_register            : std_logic;
@@ -116,6 +118,7 @@ begin
             flag_address                       => flag_address,
             ram_address                        => ram_address,
             use_alu                            => use_alu,
+            update_one_flag                    => update_one_flag,
             use_register_1                     => use_register_1,
             use_register_2                     => use_register_2,
             use_memory_for_register            => use_memory_for_register,
@@ -160,6 +163,9 @@ begin
 
         assert alu_selector = alu_selector_variable
         report print_error("Wrong ALU selector", alu_selector_variable, alu_selector) severity error;
+        
+        assert update_one_flag = instruction_opcode(ALU_SEL_3)
+        report print_bit_error("Wrong one flag update", instruction_opcode(ALU_SEL_3), update_one_flag);
 
         assert register_address_read_1 = instruction_a(REGISTER_SELECTOR_SIZE - 1 downto 0)
         report print_error("Wrong first register address", instruction_address(DATA_SIZE - 1 downto DATA_SIZE / 2), register_address_read_1) severity error;
@@ -202,8 +208,8 @@ begin
             report print_bit_error("Branching unit must be disabled for ALU", '0', use_branching_unit) severity error;
 
             -- TODO To change when ALU improved
-            assert write_register = '1'
-            report print_bit_error("Writing in register must be enabled for ALU", '1', write_register) severity error;
+            assert write_register = not instruction_opcode(ALU_SEL_3)
+            report print_bit_error("Writing in register must be enabled for ALU", not instruction_opcode(ALU_SEL_3), write_register) severity error;
 
             assert write_ram = '0'
             report print_bit_error("Writing in RAM must be disabled for ALU", '0', write_ram) severity error;
