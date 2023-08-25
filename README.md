@@ -10,12 +10,20 @@ I will probably make a compiler, an interpreter and documentation of this CPU so
 This CPU has a few components. The one that are ok are marked with (\/) currently developped are marked with (\*), the ones that are developped but where tests are lacking or are simply not implemented are marked with (+), the ones that still need to be developped are marked with (#) and finally the ones that will be improved are marked with ($).
 
 - ALU				(\/)($) (Add memory read or memory write (needs to be discussed...))
-- Register bank 	(\/)
+- Register bank 	(\/)($) (Add `PC` output)
 - Flag bank			(\/)
 - Branching unit	(\/)
 - RAM memory		(\/)($)
 - Control unit      (\/)
-- CPU as a whole    (\*)(+)
+- CPU as a whole    (\*)(+)($) (Add `PC` output)
+
+The ALU does not have all the instructions I wanted to have (rol ror asl, etc...) This can be possible if the ALU takes a register and number + register instead of the possibility of 2 numbers... This would add 16 additional operations, this will be a big boy ALU :D.
+
+I is reaaaaaally hard to test the CPU unlike the other components... To do so, we prepare a few example programs that tries to test the most things possible. There will be 4 sets of tests:
+- ALU tests         (#)
+- Branch tests      (#)
+- Storing tests     (#)
+- Complete programs (#)
 
 The further developpement I can see is to find an FPGA where you can plug a mass memory to store programs on and configure the FPGA to start on a specific address of the memory to run a specific program. This configuration will load the program into the CPU instruction memory and then launch it. It will make the CPU easier to use (not modifying the constant array each time! Efficiency go brrr). Hence the few other components I see to add:
 
@@ -204,7 +212,7 @@ Bit names have pretty self-explanatory names but it's always good to be sure of 
 - USE_REG_i: Uses a register as i-th input of the ALU
 - FLAG_SEL: Selector for flag bank - 2 bits so 4 flags (in order Carry (C), Zero (Z), Negative (N), Overflow (V))
 - EN_BRANCH: Enables the branching unit
-- USE_REG_ADDR: Uses register as address for branching (can used to branch using PC)
+- USE_REG_ADDR: Uses register as address for branching (can used to branch using `PC`)
 - USE_REG_OFFSET: Uses a register as offset for branching
 - EN_REL_BRANCH: Enables relative branching
 - INV_FLAG: Inverts the flag check condition, branch if flag not set
@@ -239,6 +247,16 @@ This map does not contain any information about addressing mode, for this refer 
 All opcodes marked with \* are opcodes that are not used with their defined opcode (they are here since there are unused bits).
 
 All opcodes marked with \*\* are unofficial opcodes. They are opcodes that uses a combination of existing functionnality to do something that was not meant for because of clock cycles configuration. Most of them must be followed by a NOPs to be working normally. They exist because of the conception of the CPU allows it. 
+
+WHERE `LDR`??? Well some MOV are mistakes for now...
+
+If you think that we are missing of ALU operations, I totally agree! We could at least these few ones `ASL`, `ASR`, `LSL`, `LSR`, `ROR`, `ROL`
+
+## How can I code with this ASM
+Do you have problems? You should go to the doctor because it's scary... There is a `assemblu_uml.xml` file which is a language file for **Notepad++**. You just have to import it and you will have syntax coloring. Don't expect more for now... (Joking, I'll probably do something for vscode)
+
+## How can I run what I coded?
+I didn't have finished yet the CPU and I haven't started a compiler yet. And you want me to run compiled code? When the CPU will be finished (or when I will want to make a small break), I will make an interpreter and then a compiler (lex/yacc since it's not a hard language). But for now nothing is planned...
 
 ## Why a CPU?
 Why not?
