@@ -20,10 +20,12 @@ This CPU has a few components. The one that are ok are marked with (\/) currentl
 The ALU does not have all the instructions I wanted to have (rol ror asl, etc...) This can be possible if the ALU takes a register and number + register instead of the possibility of 2 numbers... This would add 16 additional operations, this will be a big boy ALU :D.
 
 I is reaaaaaally hard to test the CPU unlike the other components... To do so, we prepare a few example programs that tries to test the most things possible. There will be 4 sets of tests:
-- ALU tests         (#)
-- Branch tests      (#)
-- Storing tests     (#)
-- Complete programs (#)
+- ALU set         (\/)
+- Branch set      (#)
+- Storing set     (#)
+- Complete set    (#)
+
+These tests ideally will be in assembly and compiled language (so it means that I need to do a basic compiler)... 
 
 The further developpement I can see is to find an FPGA where you can plug a mass memory to store programs on and configure the FPGA to start on a specific address of the memory to run a specific program. This configuration will load the program into the CPU instruction memory and then launch it. It will make the CPU easier to use (not modifying the constant array each time! Efficiency go brrr). Hence the few other components I see to add:
 
