@@ -269,7 +269,7 @@ The CPU has one output designed for testing. This output is the output of the AL
 For instance:
 
 - Content of test assembly `alu_set_1` (to compile)
-```arm
+```assembly
 ; Simple addition
 MOV R0 $A0
 ADD R1 R0 $0A
