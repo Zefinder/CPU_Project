@@ -254,8 +254,54 @@ WHERE `LDR`??? Well some MOV are mistakes for now...
 
 If you think that we are missing of ALU operations, I totally agree! We could at least these few ones `ASL`, `ASR`, `LSL`, `LSR`, `ROR`, `ROL`
 
+## How to create a test and a test set
+
+### How to create a test
+The system is made to try to be the simplest possible (it's still quite hard...). But first you need to understand how the CPU works and how tests are designed.
+
+The CPU has one output designed for testing. This output is the output of the ALU. This is the easiest thing to find since you don't have addresses to mess with! A test is a compiled file with a *.txt* file. The compiled file contains the code, the txt file contains the expected results of the execution. To test a value, use `CMP` and put the expected result in the *.txt* file. 
+
+**IMPORTANT**: There are a few thing that must be respected:
+- Compiled and *.txt* files **MUST** have the name of the test set directory followed by `_n`, where `n` is the test number
+- The compiled file **MUST** be compiled and not only an assembly code file
+- The test count for the corresponding set must be updated
+
+For instance:
+
+- Content of test assembly `alu_set_1` (to compile)
+```arm
+; Simple addition
+MOV R0 $A0
+ADD R1 R0 $0A
+CMP R1 ; Outputs the value of R1
+```
+
+- Content of the *.txt* `alu_set_1.txt` (TODO to test)
+```
+AA
+```
+
+### How to create a test set
+Create a new directory in the `assembly_test_set` directory. In the `cpu_test.vhd` file, add two new constants (next to the others for example):
+- The set name (name of the new directory) as a string
+- The test count as a natural
+
+```vhdl
+constant NEW_SET_NAME : string := "new_set";
+constant NEW_SET_TEST_COUNT : natural := 5;
+```
+
+In the `cpu_test_process` process, create a new variable (also next to the others for example) and add it to the set array:
+
+```vhdl
+variable new_set  : test_set := (new string'(NEW_SET_NAME), NEW_SET_TEST_COUNT);
+variable test_files_array : test_files_array_t(0 to x) := (..., new_set); -- x is the number - 1 in the array 
+```
+
+To add tests, please refer to the previous subsubsection.
+
 ## How can I code with this ASM
-Do you have problems? You should go to the doctor because it's scary... There is a `assemblu_uml.xml` file which is a language file for **Notepad++**. You just have to import it and you will have syntax coloring. Don't expect more for now... (Joking, I'll probably do something for vscode)
+Do you have problems? You should go to the doctor because it's scary... There is a `assembly_udl.xml` file which is a language file for **Notepad++**. You just have to import it and you will have syntax coloring. Don't expect more for now... (Joking, I'll probably do something for vscode)
 
 ## How can I run what I coded?
 I didn't have finished yet the CPU and I haven't started a compiler yet. And you want me to run compiled code? When the CPU will be finished (or when I will want to make a small break), I will make an interpreter and then a compiler (lex/yacc since it's not a hard language). But for now nothing is planned...
