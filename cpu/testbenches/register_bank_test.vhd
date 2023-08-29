@@ -11,6 +11,7 @@ architecture testbench of register_bank_test is
     component register_bank
         port(
             clk                     : in  std_logic;
+            rst                     : in  std_logic;
             register_address_read_1 : in  std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
             register_address_read_2 : in  std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
             register_address_write  : in  std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
@@ -22,6 +23,7 @@ architecture testbench of register_bank_test is
     end component register_bank;
 
     signal clk                     : std_logic                                             := '0';
+    signal rst                     : std_logic                                             := '0';
     signal register_address_read_1 : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0) := (others => '0');
     signal register_address_read_2 : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0) := (others => '0');
     signal register_address_write  : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0) := (others => '0');
@@ -37,6 +39,7 @@ begin
     register_bank_inst : component register_bank
         port map(
             clk                     => clk,
+            rst                     => rst,
             register_address_read_1 => register_address_read_1,
             register_address_read_2 => register_address_read_2,
             register_address_write  => register_address_write,
@@ -53,53 +56,60 @@ begin
         clk     <= not clk;
         counter := counter + 1;
 
-        if counter = 15 then
+        if counter = 17 then
             wait;
         end if;
     end process clock_process;
 
-    reister_test_process : process is
+    -- TODO Use test_utils
+    register_test_process : process is
     begin
+        rst <= '1';
+        wait for 10 ns;
+
+        rst           <= '0';
         register_load <= x"AA";
         wait for 10 ns;
-        
+
         assert register_output_1 = x"00" report "Register output 1 should be empty!" severity error;
         assert register_output_2 = x"00" report "Register output 2 should be empty!" severity error;
-        
-        register_address_write <= x"1";
+
+        register_address_write  <= x"1";
         register_address_read_1 <= x"0";
         register_address_read_2 <= x"1";
         wait for 10 ns;
-        
+
         assert register_output_1 = x"00" report "Register output 1 should be empty!" severity error;
         assert register_output_2 = x"00" report "Register output 2 should be empty!" severity error;
-        
+
         write_register <= '1';
         wait for 10 ns;
-        
+
         assert register_output_1 = x"00" report "Register output 1 should be empty!" severity error;
         assert register_output_2 = x"AA" report "Register output 2 should be 0xAA!" severity error;
-        
-        register_load <= x"BB";
+
+        register_load          <= x"BB";
         register_address_write <= x"2";
         wait for 10 ns;
-        
+
         assert register_output_1 = x"00" report "Register output 1 should be empty!" severity error;
         assert register_output_2 = x"AA" report "Register output 2 should be 0xAA!" severity error;
-        
+
         register_address_read_1 <= x"2";
         wait for 10 ns;
-        
+
         assert register_output_1 = x"BB" report "Register output 1 should be 0xBB!" severity error;
         assert register_output_2 = x"AA" report "Register output 2 should be 0xAA!" severity error;
 
         register_address_read_1 <= x"0";
         wait for 10 ns;
-        
+
         assert register_output_1 = x"00" report "Register output 1 should be empty!" severity error;
         assert register_output_2 = x"AA" report "Register output 2 should be 0xAA!" severity error;
-        wait;
         
-    end process reister_test_process;
+        report "End of tests!" severity note;
+        wait;
+
+    end process register_test_process;
 
 end architecture testbench;

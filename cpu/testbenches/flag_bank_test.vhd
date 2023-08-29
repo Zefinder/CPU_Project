@@ -12,6 +12,7 @@ architecture testbench of flag_bank_test is
     component flag_bank
         port(
             clk             : in  std_logic;
+            rst             : in  std_logic;
             flag_selector   : in  std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
             input_flags     : in  std_logic_vector(2 ** FLAG_SELECTOR_SIZE - 1 downto 0);
             update_flags    : in  std_logic;
@@ -23,6 +24,7 @@ architecture testbench of flag_bank_test is
     constant FLAG_SELECTOR_SIZE : natural := 2;
 
     signal clk             : std_logic                                              := '0';
+    signal rst             : std_logic                                              := '1';
     signal flag_selector   : std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0)      := (others => '0');
     signal input_flags     : std_logic_vector(2 ** FLAG_SELECTOR_SIZE - 1 downto 0) := (others => '0');
     signal update_flags    : std_logic                                              := '1';
@@ -35,6 +37,7 @@ begin
     flag_bank_inst : component flag_bank
         port map(
             clk             => clk,
+            rst             => rst,
             flag_selector   => flag_selector,
             input_flags     => input_flags,
             update_flags    => update_flags,
@@ -63,6 +66,7 @@ begin
     begin
         if init = 0 then
             wait for 6 ns;
+            rst          <= '0';
             update_flags <= '0';
             init         := 1;
             wait for 4 ns;

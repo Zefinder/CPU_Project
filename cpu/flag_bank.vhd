@@ -8,6 +8,8 @@ entity flag_bank is
     port(
         -- Clock used to update flags
         clk             : in  std_logic;
+        -- Resets flags to 0
+        rst             : in  std_logic;
         -- Selector used to output a flag
         flag_selector   : in  std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
         -- The input flags to update if needed
@@ -26,9 +28,11 @@ architecture RTL of flag_bank is
     signal flags : std_logic_vector(2 ** FLAG_SELECTOR_SIZE - 1 downto 0);
 begin
 
-    flags_update_process : process(clk) is
+    flags_update_process : process(clk, rst) is
     begin
-        if rising_edge(clk) and update_flags = '1' then
+        if rst = '1' then
+            flags <= (others => '0');
+        elsif rising_edge(clk) and update_flags = '1' then
             if update_one_flag = '1' then
                 flags(to_integer(unsigned(flag_selector))) <= input_flags(to_integer(unsigned(flag_selector)));
             else

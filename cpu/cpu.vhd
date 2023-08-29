@@ -19,6 +19,8 @@ entity cpu is
     port(
         -- Main clock
         clk                : in  std_logic;
+        -- Main reset
+        rst                : in  std_logic;
         -- Instruction vector (to maybe move elsewhere)
         instruction_vector : in  std_logic_vector(INSTRUCTION_SIZE - 1 downto 0);
         -- Output of the cpu (maybe to ask for next operation?)
@@ -67,6 +69,7 @@ architecture RTL of cpu is
     component flag_bank
         port(
             clk             : in  std_logic;
+            rst             : in  std_logic;
             flag_selector   : in  std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
             input_flags     : in  std_logic_vector(2 ** FLAG_SELECTOR_SIZE - 1 downto 0);
             update_flags    : in  std_logic;
@@ -78,6 +81,7 @@ architecture RTL of cpu is
     component register_bank
         port(
             clk                     : in  std_logic;
+            rst                     : in  std_logic;
             register_address_read_1 : in  std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
             register_address_read_2 : in  std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
             register_address_write  : in  std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
@@ -91,6 +95,7 @@ architecture RTL of cpu is
     component ram_memory
         port(
             clk       : in  std_logic;
+            rst       : in  std_logic;
             write     : in  std_logic;
             address   : in  std_logic_vector(DATA_SIZE - 1 downto 0);
             value_in  : in  std_logic_vector(DATA_SIZE - 1 downto 0);
@@ -285,17 +290,19 @@ begin
     flag_bank_inst : component flag_bank
         port map(
             -- Clock used to update the flags
-            clk           => clk,
+            clk             => clk,
+            -- Reset used to put flags to 0
+            rst             => rst,
             -- Selector of the flags
-            flag_selector => flag_selector,
+            flag_selector   => flag_selector,
             -- Input flags to update
-            input_flags   => alu_flags_output,
+            input_flags     => alu_flags_output,
             -- Enables flag update
-            update_flags  => use_alu,
+            update_flags    => use_alu,
             -- Updates only one flag
             update_one_flag => update_one_flag,
             -- Output the flag chosen by the selector
-            output_flag   => flag_output
+            output_flag     => flag_output
         );
 
     -- Instantiation of the register bank, it is linked to the ALU and the RAM memory
@@ -303,6 +310,8 @@ begin
         port map(
             -- Clock used to update the register
             clk                     => clk,
+            -- Reset used to put register to 0
+            rst                     => rst,
             -- Address for the first output
             register_address_read_1 => register_address_read_1,
             -- Address for the second output
@@ -324,6 +333,8 @@ begin
         port map(
             -- Clock used to update RAM cells
             clk       => clk,
+            -- Reset used to put all memory to 0
+            rst       => rst,
             -- Enables writing in the RAM
             write     => write_ram,
             -- Address of cell to write or to read

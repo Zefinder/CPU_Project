@@ -11,9 +11,9 @@ architecture testbench of ram_memory_test is
     constant DATA_SIZE    : natural := 8;
 
     component ram_memory
-        generic(DATA_SIZE : natural := 8);
         port(
             clk       : in  std_logic;
+            rst       : in  std_logic;
             write     : in  std_logic;
             address   : in  std_logic_vector(DATA_SIZE - 1 downto 0);
             value_in  : in  std_logic_vector(DATA_SIZE - 1 downto 0);
@@ -23,6 +23,7 @@ architecture testbench of ram_memory_test is
     for all : ram_memory use entity work.ram_memory(RTL);
 
     signal clk       : std_logic                                   := '0';
+    signal rst       : std_logic                                   := '0';
     signal write     : std_logic                                   := '1';
     signal address   : std_logic_vector(ADDRESS_SIZE - 1 downto 0) := x"00";
     signal value_in  : std_logic_vector(DATA_SIZE - 1 downto 0)    := x"1A";
@@ -30,11 +31,9 @@ architecture testbench of ram_memory_test is
 begin
 
     memory_inst : component ram_memory
-        generic map(
-            DATA_SIZE => DATA_SIZE
-        )
         port map(
             clk       => clk,
+            rst       => rst,
             write     => write,
             address   => address,
             value_in  => value_in,
@@ -55,9 +54,14 @@ begin
 
     end process clk_timing;
 
+    -- TODO Use test_utils
     memory_test_process : process is
     begin
-        wait for 6 ns;
+        rst <= '1';
+        wait for 4 ns;
+        
+        rst <= '0';
+        wait for 16 ns;
 
         assert value_out = x"1A" report "Error: expected 0x1A but got " & to_hstring(value_out) severity error;
         value_in <= x"BB";
