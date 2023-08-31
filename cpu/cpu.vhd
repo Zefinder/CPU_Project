@@ -193,15 +193,15 @@ architecture RTL of cpu is
     signal use_register_for_branching_offset  : std_logic;
 
 begin
-    operand_1 <= cu_operand_1 when use_register_1 = '1' else
-                 register_operand_1;
+    operand_1 <= register_operand_1 when use_register_1 = '1' else
+                 cu_operand_1;
 
-    operand_2 <= cu_operand_2 when use_register_2 = '1' else
-                 register_operand_2;
+    operand_2 <= register_operand_2 when use_register_2 = '1' else
+                 cu_operand_2;
 
     register_load <= branching_address_output when use_branching_unit = '1' else
                      ram_output when use_memory_for_register = '1' else
-                     cu_operand_1 when use_alu = '0' else
+                     cu_operand_1 when use_alu = '0' else 
                      alu_output;
 
     ram_load <= register_operand_1 when use_register_for_memory = '1' else

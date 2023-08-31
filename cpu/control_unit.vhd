@@ -203,13 +203,7 @@ begin
             use_register_2 <= instruction_opcode(USE_REG_2);
 
             -- Get the address of the register to write
-            if instruction_opcode(USE_REG_1) = '1' and instruction_opcode(USE_REG_2) = '1' then
-                register_address_write <= instruction_b(DATA_SIZE - 1 downto DATA_SIZE / 2);
-            elsif instruction_opcode(USE_REG_1) = '1' and instruction_opcode(USE_REG_2) = '0' then
-                register_address_write <= instruction_address(DATA_SIZE / 2 - 1 downto 0);
-            else
-                register_address_write <= instruction_address(DATA_SIZE - 1 downto DATA_SIZE / 2);
-            end if;
+            register_address_write <= instruction_address(DATA_SIZE / 2 - 1 downto 0);
         else
             -- The ALU is disabled
             use_alu <= '0';

@@ -163,7 +163,7 @@ begin
 
         assert alu_selector = alu_selector_variable
         report print_error("Wrong ALU selector", alu_selector_variable, alu_selector) severity error;
-        
+
         assert update_one_flag = instruction_opcode(ALU_SEL_3)
         report print_bit_error("Wrong one flag update", instruction_opcode(ALU_SEL_3), update_one_flag);
 
@@ -217,16 +217,8 @@ begin
             assert flag_address = FLAG_C_ADDR
             report print_error("Wrong flag address for ALU", FLAG_C_ADDR, flag_address) severity error;
 
-            if instruction_opcode(USE_REG_1) = '1' and instruction_opcode(USE_REG_2) = '1' then
-                assert register_address_write = instruction_b(DATA_SIZE - 1 downto DATA_SIZE / 2)
-                report print_error("Wrong register write address for ALU", instruction_b(DATA_SIZE - 1 downto DATA_SIZE / 2), register_address_write) severity error;
-            elsif instruction_opcode(USE_REG_1) = '1' and instruction_opcode(USE_REG_2) = '0' then
-                assert register_address_write = instruction_address(DATA_SIZE / 2 - 1 downto 0)
-                report print_error("Wrong register write address for ALU", instruction_address(DATA_SIZE / 2 - 1 downto 0), register_address_write) severity error;
-            else
-                assert register_address_write = instruction_address(DATA_SIZE - 1 downto DATA_SIZE / 2)
-                report print_error("Wrong register write address for ALU", instruction_address(DATA_SIZE - 1 downto DATA_SIZE / 2), register_address_write) severity error;
-            end if;
+            assert register_address_write = instruction_address(DATA_SIZE / 2 - 1 downto 0)
+            report print_error("Wrong register write address for ALU", instruction_address(DATA_SIZE / 2 - 1 downto 0), register_address_write) severity error;
         else
             assert use_alu = '0'
             report print_bit_error("ALU must be disabled when not ALU", '0', use_alu) severity error;

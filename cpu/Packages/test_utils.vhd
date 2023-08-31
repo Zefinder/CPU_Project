@@ -5,6 +5,9 @@ use ieee.numeric_std.all;
 use utils.cpu_utils.all;
 
 package test_utils is
+    constant CLK_PERIOD_TIME : time    := 5 ns;
+    constant CLK_PERIOD      : natural := 5;
+
     function print_error(context_message : string; expected, got : std_logic_vector) return string;
     function print_bit_error(context_message : string; expected, got : std_logic) return string;
 end package test_utils;

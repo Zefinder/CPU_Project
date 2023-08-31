@@ -12,6 +12,8 @@ package cpu_utils is
     constant REG_LR : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0) := "1110";
     constant REG_PC : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0) := "1111";
 
+    constant CMP_OPCODE : std_logic_vector(7 downto 0) := x"1F";
+
     constant FLAG_C : natural := 0;     -- Selector for C flag (carry)
     constant FLAG_Z : natural := 1;     -- Selector for Z flag (zero)
     constant FLAG_N : natural := 2;     -- Selector for N flag (negative)

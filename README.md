@@ -244,7 +244,7 @@ This map does not contain any information about addressing mode, for this refer 
 | **XC** |  OR   |  OR   |  OR   |  OR   |  CLC  | CLC\* | CLC\* | CLC\* | OR\*  | OR\*  | OR\*  | OR\*  |   CLC\*   |    CLC\*    |    CLC\*    |  CLC\*   |
 | **XD** |  XOR  |  XOR  |  XOR  |  XOR  |  CLZ  | CLZ\* | CLZ\* | CLZ\* | XOR\* | XOR\* | XOR\* | XOR\* |   CLZ\*   |    CLZ\*    |    CLZ\*    |  CLZ\*   |
 | **XE** |  NOT  |  NOT  | NOT\* | NOT\* |  CLN  | CLN\* | CLN\* | CLN\* | NOT\* | NOT\* | NOT\* | NOT\* |   CLN\*   |    CLN\*    |    CLN\*    |  CLN\*   |
-| **XF** |  CMP  |  CMP  | CMP\* | CMP\* |  CLV  | CLV\* | CLV\* | CLV\* | CMP\* | CMP\* | CMP\* | CMP\* |   CLV\*   |    CLV\*    |    CLV\*    |  CLV\*   |
+| **XF** | CMP\* |  CMP  | CMP\* | CMP\* |  CLV  | CLV\* | CLV\* | CLV\* | CMP\* | CMP\* | CMP\* | CMP\* |   CLV\*   |    CLV\*    |    CLV\*    |  CLV\*   |
 
 All opcodes marked with \* are opcodes that are not used with their defined opcode (they are here since there are unused bits).
 
@@ -255,6 +255,8 @@ WHERE `LDR`??? Well some MOV are mistakes for now...
 If you think that we are missing of ALU operations, I totally agree! We could at least these few ones `ASL`, `ASR`, `LSL`, `LSR`, `ROR`, `ROL`
 
 ## How to create a test and a test set
+
+Just a note like that, don't forget to change the `TEST_FILES_DIRECTORY` constant...
 
 ### How to create a test
 The system is made to try to be the simplest possible (it's still quite hard...). But first you need to understand how the CPU works and how tests are designed.
