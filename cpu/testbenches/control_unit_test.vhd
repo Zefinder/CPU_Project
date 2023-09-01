@@ -208,8 +208,14 @@ begin
             report print_bit_error("Branching unit must be disabled for ALU", '0', use_branching_unit) severity error;
 
             -- TODO To change when ALU improved
-            assert write_register = not instruction_opcode(ALU_SEL_3)
-            report print_bit_error("Writing in register must be enabled for ALU", not instruction_opcode(ALU_SEL_3), write_register) severity error;
+            if alu_selector = "0111" or instruction_opcode(ALU_SEL_3) = '1' then
+                assert write_register = '0'
+                report print_bit_error("Writing in register must be disabled for ALU", '0', write_register) severity error;
+            else
+                assert write_register = '1'
+                report print_bit_error("Writing in register must be enabled for ALU", '1', write_register) severity error;
+
+            end if;
 
             assert write_ram = '0'
             report print_bit_error("Writing in RAM must be disabled for ALU", '0', write_ram) severity error;
@@ -269,7 +275,7 @@ begin
                 assert flag_address = FLAG_C_ADDR
                 report print_error("Wrong flag address for storing", FLAG_C_ADDR, flag_address) severity error;
 
-                assert register_address_write = instruction_b(DATA_SIZE / 2 - 1 downto 0)
+                assert register_address_write = instruction_address(DATA_SIZE / 2 - 1 downto 0)
                 report print_error("Wrong register write address for storing", instruction_b(DATA_SIZE / 2 - 1 downto 0), register_address_write) severity error;
             end if;
         end if;

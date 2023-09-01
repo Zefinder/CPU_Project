@@ -150,17 +150,23 @@ architecture RTL of control_unit is
     -- Additionnal address in the instruction
     signal instruction_address : std_logic_vector(DATA_SIZE - 1 downto 0);
 
+    -- Signal of ALU selector
+    signal alu_selector_sig : std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
+
 begin
 
-    control_unit_process : process(instruction_a, instruction_b, instruction_opcode, instruction_address, instruction_vector) is
+    alu_selector_sig <= instruction_opcode(ALU_SEL_3) & instruction_opcode(ALU_SEL_2) & instruction_opcode(ALU_SEL_1) & instruction_opcode(ALU_SEL_0);
+
+    control_unit_process : process(instruction_a, instruction_b, instruction_opcode, instruction_address, instruction_vector, alu_selector_sig) is
     begin
         instruction_opcode  <= instruction_vector(4 * DATA_SIZE - 1 downto 3 * DATA_SIZE);
         instruction_a       <= instruction_vector(3 * DATA_SIZE - 1 downto 2 * DATA_SIZE);
         instruction_b       <= instruction_vector(2 * DATA_SIZE - 1 downto DATA_SIZE);
         instruction_address <= instruction_vector(DATA_SIZE - 1 downto 0);
 
-        alu_selector    <= instruction_opcode(ALU_SEL_3) & instruction_opcode(ALU_SEL_2) & instruction_opcode(ALU_SEL_1) & instruction_opcode(ALU_SEL_0);
         update_one_flag <= instruction_opcode(ALU_SEL_3);
+
+        alu_selector <= alu_selector_sig;
 
         operand1 <= instruction_a;
         operand2 <= instruction_b;
@@ -188,7 +194,11 @@ begin
             use_branching_unit <= '0';
 
             -- We write in the register at the end of the ALU
-            write_register <= not instruction_opcode(ALU_SEL_3);
+            if alu_selector_sig = "0111" or instruction_opcode(ALU_SEL_3) = '1' then
+                write_register <= '0';
+            else
+                write_register <= '1';
+            end if;
 
             -- We don't write in the memory with the ALU (TODO need to change)
             write_ram <= '0';
@@ -240,7 +250,7 @@ begin
                 flag_address <= FLAG_C_ADDR;
 
                 -- Register write always the last part of b operator
-                register_address_write <= instruction_b(DATA_SIZE / 2 - 1 downto 0);
+                register_address_write <= instruction_address(DATA_SIZE / 2 - 1 downto 0);
 
                 -- We use the memory output for the register input if the bit is set
                 use_memory_for_register <= instruction_opcode(USE_MEM);

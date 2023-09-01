@@ -250,7 +250,7 @@ All opcodes marked with \* are opcodes that are not used with their defined opco
 
 All opcodes marked with \*\* are unofficial opcodes. They are opcodes that uses a combination of existing functionnality to do something that was not meant for because of clock cycles configuration. Most of them must be followed by a NOPs to be working normally. They exist because of the conception of the CPU allows it. 
 
-WHERE `LDR`??? Well some MOV are mistakes for now...
+WHERE `LDR`??? Well some MOV are mistakes for now... And for now can't do something like `MOV R0 R1`...
 
 If you think that we are missing of ALU operations, I totally agree! We could at least these few ones `ASL`, `ASR`, `LSL`, `LSR`, `ROR`, `ROL`
 

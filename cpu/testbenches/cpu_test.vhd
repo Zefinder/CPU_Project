@@ -29,6 +29,9 @@ architecture testbench of cpu_test is
 
     type test_files_array_t is array (natural range <>) of test_set;
 
+    type test_status is (SUCCESS, FAILURE);
+    type status_array_t is array (natural range <>) of test_status;
+
     constant TEST_FILES_DIRECTORY : string := "C:\Users\adric\workspaceSigasi\CPU_Project\cpu\assembly_test_set\";
 
     -- TODO Complete set when there will be an instruction memory
@@ -37,15 +40,19 @@ architecture testbench of cpu_test is
     constant STORING_SET_NAME   : string := "storing_set";
     constant COMPLETE_SET_NAME  : string := "complete_set";
 
-    constant ALU_SET_TEST_COUNT       : natural := 1;
+    constant ALU_SET_TEST_COUNT       : natural := 2;
     constant BRANCHING_SET_TEST_COUNT : natural := 0;
     constant STORING_SET_TEST_COUNT   : natural := 0;
     constant COMPLETE_SET_TEST_COUNT  : natural := 0;
+
+    constant NUMBER_TESTS : natural := ALU_SET_TEST_COUNT + BRANCHING_SET_TEST_COUNT + STORING_SET_TEST_COUNT + COMPLETE_SET_TEST_COUNT;
 
     signal clk                : std_logic                                       := '0';
     signal rst                : std_logic                                       := '1';
     signal instruction_vector : std_logic_vector(INSTRUCTION_SIZE - 1 downto 0) := (others => '0');
     signal output             : std_logic_vector(DATA_SIZE - 1 downto 0);
+    
+    signal end_clk : std_logic := '0';
 
     procedure update_test_set(test_set_number : in natural; test_files_array : inout test_files_array_t; set_name : out set_name_access; total_test_count : out natural) is
         variable test_file : test_set;
@@ -99,6 +106,24 @@ architecture testbench of cpu_test is
     begin
         report "End of tests for " & set_name & "_" & integer'image(test_number) severity note;
     end procedure print_end_test;
+    
+    procedure print_test_summary(test_files_array: inout test_files_array_t; test_status_array: status_array_t) is
+        variable set : test_set;
+        variable test_count : natural := 0;
+    begin
+        report "Test summary:" severity note;
+        
+        for set_number in 0 to test_files_array'length - 1 loop
+            set := test_files_array(set_number);
+            report "- " & set.file_name_ptr.all & ":" severity note;
+            
+            for test_number in 1 to set.test_count loop
+                report "  - " & set.file_name_ptr.all & "_" & integer'image(test_number) & ": " & test_status'image(test_status_array(test_count)) severity note;
+                
+                test_count := test_count + 1;
+            end loop;
+        end loop;
+    end procedure print_test_summary;
 
     for all : cpu use entity work.cpu(RTL);
 
@@ -112,13 +137,11 @@ begin
         );
 
     clk_process : process is
-        variable counter : natural := 0;
     begin
         wait for CLK_PERIOD_TIME;
         clk     <= not clk;
-        counter := counter + CLK_PERIOD;
 
-        if counter = 2 * CLK_PERIOD * 10 then
+        if end_clk = '1' then
             wait;
         end if;
     end process clk_process;
@@ -135,15 +158,16 @@ begin
         variable test_files_array : test_files_array_t(0 to 3) := (alu_set, branching_set, storing_set, complete_set);
 
         -- Selected files
-        variable test_set_number  : natural;
-        variable set_name         : set_name_access;
-        variable total_test_count : natural;
-        variable test_counter     : natural;
+        variable test_set_number   : natural;
+        variable set_name          : set_name_access;
+        variable total_test_count  : natural;
+        variable file_test_counter : natural;
 
         -- Binary file variables
         file binary_file_ptr                 : binary;
         variable instruction_vector_variable : std_logic_vector(INSTRUCTION_SIZE - 1 downto 0);
         variable file_status                 : file_open_status;
+        variable test_counter                : natural := 0;
 
         -- Results file variables
         file result_file_ptr     : text;
@@ -152,14 +176,17 @@ begin
 
         variable eof_test_file    : boolean := false;
         variable eof_results_file : boolean := false;
-        
+
+        -- Test status variables
+        variable test_status_array : status_array_t(0 to NUMBER_TESTS) := (others => SUCCESS);
+
         -- TODO Reset cpu after changing test!
-        -- TODO Make test check at the end to point tests that didn't (OK, FAILURE enum)
+        -- TODO Make test check at the end to point tests that didn't (SUCCESS, FAILURE enum)
     begin
         if init = 0 then
             report "Initialisation... (ignore metadata values here because we reset)" severity note;
-            test_set_number := test_files_array'low;
-            test_counter    := 1;
+            test_set_number   := test_files_array'low;
+            file_test_counter := 1;
             -- Init first test set (tests must be at least 1)
             update_test_set(test_set_number  => test_set_number,
                             test_files_array => test_files_array,
@@ -170,13 +197,13 @@ begin
             -- Open binary file
             file_open(file_status,
                       binary_file_ptr,
-                      get_binary_file_path(set_name => set_name.all, test_counter => test_counter),
+                      get_binary_file_path(set_name => set_name.all, test_counter => file_test_counter),
                       READ_MODE);
 
             -- Open results file
             file_open(file_status,
                       result_file_ptr,
-                      get_results_file_path(set_name => set_name.all, test_counter => test_counter),
+                      get_results_file_path(set_name => set_name.all, test_counter => file_test_counter),
                       READ_MODE);
 
             report "Opened!" severity note;
@@ -185,7 +212,7 @@ begin
             rst <= '0';
             wait for 2 * CLK_PERIOD_TIME;
             report "Initialised!" severity note;
-            print_begin_test(set_name.all, test_counter);
+            print_begin_test(set_name.all, file_test_counter);
 
             init := 1;
         else
@@ -197,31 +224,41 @@ begin
             instruction_vector <= instruction_vector_variable;
             wait for 2 * CLK_PERIOD_TIME;
 
+--            report to_hstring(output);
             if instruction_vector_variable(INSTRUCTION_SIZE - 1 downto INSTRUCTION_SIZE - 8) = CMP_OPCODE then
                 read_expected_result(result_file_ptr => result_file_ptr,
                                      line            => line_number,
                                      expected_result => expected_result,
                                      eof             => eof_results_file);
-
-                assert output = expected_result
-                report print_error("different expected output", expected_result, output) severity note;
+                
+                if output /= expected_result then
+                    report print_error("different expected output", expected_result, output) severity note;
+                    test_status_array(test_counter) := FAILURE;
+                    end if;
             end if;
 
             -- If no more instructions, go next
             -- If nothing more to test then useless to continue
             if eof_test_file or eof_results_file then
-                print_end_test(set_name.all, test_counter);
+                print_end_test(set_name.all, file_test_counter);
                 eof_test_file := false;
-
-                if test_counter >= total_test_count then
+                eof_results_file := false;
+                
+                -- Closing files
+                file_close(f => binary_file_ptr);
+                file_close(f => result_file_ptr);
+                
+                if file_test_counter >= total_test_count then
                     -- If we change and there are no tests, we continue changing
-                    while test_counter >= total_test_count loop
-                        test_counter    := 1;
-                        test_set_number := test_set_number + 1;
+                    while file_test_counter >= total_test_count loop
+                        file_test_counter := 1;
+                        test_set_number   := test_set_number + 1;
 
                         if test_set_number = test_files_array'high + 1 then
-                            print_end_test(set_name.all, test_counter);
+                            print_end_test(set_name.all, file_test_counter);
                             report "End of tests!" severity note;
+                            print_test_summary(test_files_array, test_status_array);
+                            end_clk <= '1';
                             wait;
                         else
                             update_test_set(test_set_number  => test_set_number,
@@ -229,26 +266,30 @@ begin
                                             set_name         => set_name,
                                             total_test_count => total_test_count);
 
-                            report "Opened next test set (" & set_name.all &")..." severity note;
+                            report "Opened next test set (" & set_name.all & ")..." severity note;
                         end if;
                     end loop;
                 else
-                    test_counter := test_counter + 1;
+                    file_test_counter := file_test_counter + 1;
                 end if;
 
-                 -- Open binary file
+                -- Open binary file
                 file_open(file_status,
                           binary_file_ptr,
-                          get_binary_file_path(set_name => set_name.all, test_counter => test_counter),
+                          get_binary_file_path(set_name => set_name.all, test_counter => file_test_counter),
                           READ_MODE);
 
                 -- Open results file
                 file_open(file_status,
                           result_file_ptr,
-                          get_results_file_path(set_name => set_name.all, test_counter => test_counter),
+                          get_results_file_path(set_name => set_name.all, test_counter => file_test_counter),
                           READ_MODE);
-                          
-                print_begin_test(set_name.all, test_counter);
+
+                test_counter := test_counter + 1;
+                rst <= '1';
+                wait for 2 * CLK_PERIOD_TIME;
+                rst <= '0';
+                print_begin_test(set_name.all, file_test_counter);
             end if;
         end if;
     end process cpu_test_process;
