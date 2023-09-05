@@ -1,6 +1,8 @@
 library ieee;
+library utils;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use utils.test_utils.all;
 
 entity ram_memory_test is
 end entity ram_memory_test;
@@ -27,7 +29,8 @@ architecture testbench of ram_memory_test is
     signal write     : std_logic                                   := '1';
     signal address   : std_logic_vector(ADDRESS_SIZE - 1 downto 0) := x"00";
     signal value_in  : std_logic_vector(DATA_SIZE - 1 downto 0)    := x"1A";
-    signal value_out : std_logic_vector(DATA_SIZE - 1 downto 0); -- @suppress "signal value_out is never read"
+    signal value_out : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal end_clk : std_logic := '0';
 begin
 
     memory_inst : component ram_memory
@@ -41,20 +44,16 @@ begin
         );
 
     clk_timing : process is
-        variable counter : natural := 0;
-
     begin
         clk     <= not clk;
-        counter := counter + 1;
         wait for 5 ns;
 
-        if counter = 6 then
+        if end_clk = '1' then
             wait;
         end if;
 
     end process clk_timing;
 
-    -- TODO Use test_utils
     memory_test_process : process is
     begin
         rst <= '1';
@@ -63,18 +62,22 @@ begin
         rst <= '0';
         wait for 16 ns;
 
-        assert value_out = x"1A" report "Error: expected 0x1A but got " & to_hstring(value_out) severity error;
+        assert value_out = x"1A" 
+        report print_error("wrong output value for RAM", x"1A", value_out) severity error;
         value_in <= x"BB";
         address  <= x"0A";
         wait for 10 ns;
 
-        assert value_out = x"BB" report "Error: expected 0xBB but got " & to_hstring(value_out) severity error;
+        assert value_out = x"BB"
+        report print_error("wrong output value for RAM", x"BB", value_out) severity error;
         write   <= '0';
         address <= x"00";
         wait for 10 ns;
 
-        assert value_out = x"1A"
-        report "Error: value should not have been modified, expected 0x1A but got " & to_hstring(value_out) severity error;
+        assert value_out = x"1A" 
+        report print_error("value should not have been modified", x"1A", value_out) severity error;
+        
+        end_clk <= '1';
         report "End of tests!" severity note;
 
         wait;

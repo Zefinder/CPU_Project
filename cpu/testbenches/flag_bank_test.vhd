@@ -30,6 +30,7 @@ architecture testbench of flag_bank_test is
     signal update_flags    : std_logic                                              := '1';
     signal update_one_flag : std_logic                                              := '0';
     signal output_flag     : std_logic;
+    signal end_clk : std_logic := '0';
 
     for all : flag_bank use entity work.flag_bank(RTL);
 begin
@@ -46,12 +47,10 @@ begin
         );
 
     clk_process : process is
-        variable counter : natural := 0;
     begin
         wait for 5 ns;
         clk     <= not clk;
-        counter := counter + 1;
-        if counter = 140 then
+        if end_clk = '1' then
             wait;
         end if;
     end process clk_process;
@@ -151,6 +150,7 @@ begin
         end if;
 
         if init = 5 then
+            end_clk <= '1';
             report "End of tests" severity note;
             wait;
         end if;

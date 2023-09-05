@@ -39,7 +39,7 @@ begin
         add_padding(a) xor add_padding(b) when "0101", -- Bitwise xor
         add_padding(not a) when "0110",  -- Bitwise not
         add_padding(a) when "0111",      -- Comparation
-        add_padding(zero_signal) when others; -- TODO Flag set and clear
+        add_padding(zero_signal) when others;
 
     flags(FLAG_C) <= '1' when selector = "1000" else
                      '0' when selector = "1100" else

@@ -28,12 +28,8 @@ entity register_bank is
 end entity register_bank;
 
 architecture RTL of register_bank is
-    -- TODO To be moved in a lib.
-    -- Array of std_logic used to store data
-    type t_register_array is array (natural range <>) of std_logic_vector(DATA_SIZE - 1 downto 0);
-
     -- Array of registers
-    signal register_array : t_register_array(2 ** REGISTER_SELECTOR_SIZE - 1 downto 0);
+    signal register_array : t_memory_array(2 ** REGISTER_SELECTOR_SIZE - 1 downto 0);
 begin
 
     -- Writing __register_load__ to the register given by the address

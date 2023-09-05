@@ -22,11 +22,8 @@ entity ram_memory is
 end entity ram_memory;
 
 architecture RTL of ram_memory is
-    -- Array of std_logic used to store data
-    type t_memory is array (natural range <>) of std_logic_vector(DATA_SIZE - 1 downto 0);
-
     -- Memory that goes from 0 to the max number an address can go
-    signal memory : t_memory(0 to 2 ** address'length - 1);
+    signal memory : t_memory_array(0 to 2 ** address'length - 1);
 
 begin
     write_memory : process(clk, rst) is

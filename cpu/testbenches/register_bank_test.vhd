@@ -3,6 +3,7 @@ library utils;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use utils.cpu_utils.all;
+use utils.test_utils.all;
 
 entity register_bank_test is
 end entity register_bank_test;
@@ -31,6 +32,7 @@ architecture testbench of register_bank_test is
     signal write_register          : std_logic                                             := '0';
     signal register_output_1       : std_logic_vector(DATA_SIZE - 1 downto 0);
     signal register_output_2       : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal end_clk : std_logic := '0';
 
     for all : register_bank use entity work.register_bank(RTL);
 
@@ -50,18 +52,15 @@ begin
         );
 
     clock_process : process is
-        variable counter : natural := 0;
     begin
         wait for 5 ns;
         clk     <= not clk;
-        counter := counter + 1;
 
-        if counter = 17 then
+        if end_clk = '1' then
             wait;
         end if;
     end process clock_process;
 
-    -- TODO Use test_utils
     register_test_process : process is
     begin
         rst <= '1';
@@ -71,42 +70,55 @@ begin
         register_load <= x"AA";
         wait for 10 ns;
 
-        assert register_output_1 = x"00" report "Register output 1 should be empty!" severity error;
-        assert register_output_2 = x"00" report "Register output 2 should be empty!" severity error;
-
+        assert register_output_1 = x"00" 
+        report print_error("register output 1 should be empty", x"00", register_output_1) severity error;
+        assert register_output_2 = x"00" 
+        report print_error("register output 2 should be empty", x"00", register_output_2) severity error;
+        
         register_address_write  <= x"1";
         register_address_read_1 <= x"0";
         register_address_read_2 <= x"1";
         wait for 10 ns;
 
-        assert register_output_1 = x"00" report "Register output 1 should be empty!" severity error;
-        assert register_output_2 = x"00" report "Register output 2 should be empty!" severity error;
-
+        assert register_output_1 = x"00" 
+        report print_error("register output 1 should be empty", x"00", register_output_1) severity error;
+        assert register_output_2 = x"00" 
+        report print_error("register output 2 should be empty", x"00", register_output_2) severity error;
+        
         write_register <= '1';
         wait for 10 ns;
 
-        assert register_output_1 = x"00" report "Register output 1 should be empty!" severity error;
-        assert register_output_2 = x"AA" report "Register output 2 should be 0xAA!" severity error;
-
+        assert register_output_1 = x"00" 
+        report print_error("register output 1 should be empty", x"00", register_output_1) severity error;
+        assert register_output_2 = x"AA" 
+        report print_error("wrong register output 2 value", x"AA", register_output_2) severity error;        
+        
         register_load          <= x"BB";
         register_address_write <= x"2";
         wait for 10 ns;
 
-        assert register_output_1 = x"00" report "Register output 1 should be empty!" severity error;
-        assert register_output_2 = x"AA" report "Register output 2 should be 0xAA!" severity error;
-
+        assert register_output_1 = x"00" 
+        report print_error("register output 1 should be empty", x"00", register_output_1) severity error;
+        assert register_output_2 = x"AA" 
+        report print_error("wrong register output 2 value", x"AA", register_output_2) severity error;  
+        
         register_address_read_1 <= x"2";
         wait for 10 ns;
 
-        assert register_output_1 = x"BB" report "Register output 1 should be 0xBB!" severity error;
-        assert register_output_2 = x"AA" report "Register output 2 should be 0xAA!" severity error;
-
+        assert register_output_1 = x"BB" 
+        report print_error("wrong register output 1 value", x"BB", register_output_1) severity error;
+        assert register_output_2 = x"AA" 
+        report print_error("wrong register output 2 value", x"AA", register_output_2) severity error;  
+        
         register_address_read_1 <= x"0";
         wait for 10 ns;
 
-        assert register_output_1 = x"00" report "Register output 1 should be empty!" severity error;
-        assert register_output_2 = x"AA" report "Register output 2 should be 0xAA!" severity error;
+        assert register_output_1 = x"00" 
+        report print_error("register output 1 should be empty", x"00", register_output_1) severity error;
+        assert register_output_2 = x"AA" 
+        report print_error("wrong register output 2 value", x"AA", register_output_2) severity error;  
         
+        end_clk <= '1';        
         report "End of tests!" severity note;
         wait;
 

@@ -194,8 +194,6 @@ begin
         -- Test status variables
         variable test_status_array : status_array_t(0 to NUMBER_TESTS) := (others => SUCCESS);
 
-        -- TODO Reset cpu after changing test!
-        -- TODO Make test check at the end to point tests that didn't (SUCCESS, FAILURE enum)
     begin
         if init = 0 then
             report "Initialisation... (ignore metadata values here because we reset)" severity note;
