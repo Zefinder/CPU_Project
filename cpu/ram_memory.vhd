@@ -21,6 +21,7 @@ entity ram_memory is
     );
 end entity ram_memory;
 
+-- TODO Add address offset (add a 3rd register output...)
 architecture RTL of ram_memory is
     -- Memory that goes from 0 to the max number an address can go
     signal memory : t_memory_array(0 to 2 ** address'length - 1);

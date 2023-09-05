@@ -22,8 +22,6 @@ entity control_unit is
         register_address_write             : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
         -- Address used to read a flag
         flag_address                       : out std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
-        -- Address used to read and write in the RAM
-        ram_address                        : out std_logic_vector(DATA_SIZE - 1 downto 0);
         -- Uses the result of the ALU
         use_alu                            : out std_logic;
         -- Updates only one flag (specified by __flag_address__)
@@ -70,6 +68,7 @@ end entity control_unit;
 -- | Bit 0 | ALU_SEL_0 |
 --
 -- ## For non-branch instructions
+-- TODO Add register offset
 --
 -- | Bit position | Function |
 -- | :----------: | :------: |
@@ -173,8 +172,6 @@ begin
 
         register_address_read_1 <= instruction_a(REGISTER_SELECTOR_SIZE - 1 downto 0);
         register_address_read_2 <= instruction_b(REGISTER_SELECTOR_SIZE - 1 downto 0);
-
-        ram_address <= instruction_address;
 
         use_branching_offset               <= instruction_opcode(EN_REL_BRANCH);
         branch_invert_flag                 <= instruction_opcode(INV_FLAG);

@@ -39,7 +39,6 @@ architecture RTL of cpu is
             register_address_read_2            : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
             register_address_write             : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
             flag_address                       : out std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
-            ram_address                        : out std_logic_vector(DATA_SIZE - 1 downto 0);
             use_alu                            : out std_logic;
             update_one_flag                    : out std_logic;
             use_register_1                     : out std_logic;
@@ -207,6 +206,9 @@ begin
     ram_load <= register_operand_1 when use_register_for_memory = '1' else
                 cu_operand_1 when use_alu = '0' else
                 alu_output;
+    
+    -- TODO Change to 3rd register output            
+    ram_address <= register_operand_2;
 
     write_register <= branch_write_register when use_branching_unit = '1' else
                       cu_write_register;
@@ -239,8 +241,6 @@ begin
             register_address_write             => register_address_write,
             -- Address for the flag to output
             flag_address                       => flag_selector,
-            -- Address for the RAM
-            ram_address                        => ram_address,
             -- Enables the ALU
             use_alu                            => use_alu,
             -- Updates only one flag
