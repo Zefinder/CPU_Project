@@ -51,7 +51,7 @@ architecture testbench of cpu_test is
     signal rst                : std_logic                                       := '1';
     signal instruction_vector : std_logic_vector(INSTRUCTION_SIZE - 1 downto 0) := (others => '0');
     signal output             : std_logic_vector(DATA_SIZE - 1 downto 0);
-    
+
     signal end_clk : std_logic := '0';
 
     procedure update_test_set(test_set_number : in natural; test_files_array : inout test_files_array_t; set_name : out set_name_access; total_test_count : out natural) is
@@ -106,24 +106,38 @@ architecture testbench of cpu_test is
     begin
         report "End of tests for " & set_name & "_" & integer'image(test_number) severity note;
     end procedure print_end_test;
-    
-    procedure print_test_summary(test_files_array: inout test_files_array_t; test_status_array: status_array_t) is
-        variable set : test_set;
+
+    procedure print_test_summary(test_files_array : inout test_files_array_t; test_status_array : status_array_t) is
+        variable set        : test_set;
         variable test_count : natural := 0;
     begin
         report "Test summary:" severity note;
-        
+
         for set_number in 0 to test_files_array'length - 1 loop
             set := test_files_array(set_number);
             report "- " & set.file_name_ptr.all & ":" severity note;
-            
+
             for test_number in 1 to set.test_count loop
                 report "  - " & set.file_name_ptr.all & "_" & integer'image(test_number) & ": " & test_status'image(test_status_array(test_count)) severity note;
-                
+
                 test_count := test_count + 1;
             end loop;
         end loop;
     end procedure print_test_summary;
+
+    procedure ensure_file_opened(file_status : file_open_status) is
+    begin
+        if file_status = STATUS_ERROR then
+            report "File is already opened... Aborting tests..." severity error;
+            wait;
+        elsif file_status = NAME_ERROR then
+            report "File not found... Aborting tests..." severity error;
+            wait;
+        elsif file_status = MODE_ERROR then
+            report "Permission not granted for the requested mode... Aborting tests..." severity error;
+            wait;
+        end if;
+    end procedure ensure_file_opened;
 
     for all : cpu use entity work.cpu(RTL);
 
@@ -139,7 +153,7 @@ begin
     clk_process : process is
     begin
         wait for CLK_PERIOD_TIME;
-        clk     <= not clk;
+        clk <= not clk;
 
         if end_clk = '1' then
             wait;
@@ -199,12 +213,14 @@ begin
                       binary_file_ptr,
                       get_binary_file_path(set_name => set_name.all, test_counter => file_test_counter),
                       READ_MODE);
+            ensure_file_opened(file_status);
 
             -- Open results file
             file_open(file_status,
                       result_file_ptr,
                       get_results_file_path(set_name => set_name.all, test_counter => file_test_counter),
                       READ_MODE);
+            ensure_file_opened(file_status);
 
             report "Opened!" severity note;
             wait for 2 * CLK_PERIOD_TIME;
@@ -224,30 +240,30 @@ begin
             instruction_vector <= instruction_vector_variable;
             wait for 2 * CLK_PERIOD_TIME;
 
---            report to_hstring(output);
+            --            report to_hstring(output);
             if instruction_vector_variable(INSTRUCTION_SIZE - 1 downto INSTRUCTION_SIZE - 8) = CMP_OPCODE then
                 read_expected_result(result_file_ptr => result_file_ptr,
                                      line            => line_number,
                                      expected_result => expected_result,
                                      eof             => eof_results_file);
-                
+
                 if output /= expected_result then
                     report print_error("different expected output", expected_result, output) severity note;
                     test_status_array(test_counter) := FAILURE;
-                    end if;
+                end if;
             end if;
 
             -- If no more instructions, go next
             -- If nothing more to test then useless to continue
             if eof_test_file or eof_results_file then
                 print_end_test(set_name.all, file_test_counter);
-                eof_test_file := false;
+                eof_test_file    := false;
                 eof_results_file := false;
-                
+
                 -- Closing files
                 file_close(f => binary_file_ptr);
                 file_close(f => result_file_ptr);
-                
+
                 if file_test_counter >= total_test_count then
                     -- If we change and there are no tests, we continue changing
                     while file_test_counter >= total_test_count loop
@@ -278,17 +294,19 @@ begin
                           binary_file_ptr,
                           get_binary_file_path(set_name => set_name.all, test_counter => file_test_counter),
                           READ_MODE);
+                ensure_file_opened(file_status);
 
                 -- Open results file
                 file_open(file_status,
                           result_file_ptr,
                           get_results_file_path(set_name => set_name.all, test_counter => file_test_counter),
                           READ_MODE);
+                ensure_file_opened(file_status);
 
                 test_counter := test_counter + 1;
-                rst <= '1';
+                rst          <= '1';
                 wait for 2 * CLK_PERIOD_TIME;
-                rst <= '0';
+                rst          <= '0';
                 print_begin_test(set_name.all, file_test_counter);
             end if;
         end if;
