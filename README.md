@@ -10,12 +10,12 @@ I will probably make a compiler, an interpreter and documentation of this CPU so
 This CPU has a few components. The one that are ok are marked with (\/) currently developped are marked with (\*), the ones that are developped but where tests are lacking or are simply not implemented are marked with (+), the ones that still need to be developped are marked with (#) and finally the ones that will be improved are marked with ($).
 
 - ALU				(\/)($) (Add memory read or memory write (needs to be discussed...))
-- Register bank 	(\/)($) (Add `PC` output)
+- Register bank 	(\/)($) (Add 3rd register output)
 - Flag bank			(\/)
 - Branching unit	(\/)
-- RAM memory		(\/)($)
+- RAM memory		(\/)($) (Add register offset)
 - Control unit      (\/)
-- CPU as a whole    (\*)(+)($) (Add `PC` output)
+- CPU as a whole    (\*)(+)($) (Add 3rd register output)
 
 The ALU does not have all the instructions I wanted to have (rol ror asl, etc...) This can be possible if the ALU takes a register and number + register instead of the possibility of 2 numbers... This would add 16 additional operations, this will be a big boy ALU :D.
 
