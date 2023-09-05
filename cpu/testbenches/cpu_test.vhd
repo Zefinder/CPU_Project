@@ -40,7 +40,7 @@ architecture testbench of cpu_test is
     constant STORING_SET_NAME   : string := "storing_set";
     constant COMPLETE_SET_NAME  : string := "complete_set";
 
-    constant ALU_SET_TEST_COUNT       : natural := 2;
+    constant ALU_SET_TEST_COUNT       : natural := 10;
     constant BRANCHING_SET_TEST_COUNT : natural := 0;
     constant STORING_SET_TEST_COUNT   : natural := 0;
     constant COMPLETE_SET_TEST_COUNT  : natural := 0;
