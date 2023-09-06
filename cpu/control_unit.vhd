@@ -18,6 +18,8 @@ entity control_unit is
         register_address_read_1            : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
         -- Address used to read a register (sends it to the second operand of the ALU)
         register_address_read_2            : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+        -- Address used to read a register (sends it to the memory address)
+        register_address_read_3            : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
         -- Address used to write in a register
         register_address_write             : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
         -- Address used to read a flag
@@ -172,6 +174,7 @@ begin
 
         register_address_read_1 <= instruction_a(REGISTER_SELECTOR_SIZE - 1 downto 0);
         register_address_read_2 <= instruction_b(REGISTER_SELECTOR_SIZE - 1 downto 0);
+        register_address_read_3 <= instruction_address(REGISTER_SELECTOR_SIZE - 1 downto 0);
 
         use_branching_offset               <= instruction_opcode(EN_REL_BRANCH);
         branch_invert_flag                 <= instruction_opcode(INV_FLAG);

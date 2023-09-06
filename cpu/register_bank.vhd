@@ -14,6 +14,8 @@ entity register_bank is
         register_address_read_1 : in  std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
         -- Address used to read a second register
         register_address_read_2 : in  std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+        -- Address used to read a third register
+        register_address_read_3 : in  std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
         -- Address used to write in a register
         register_address_write  : in  std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
         -- Data that must be written to a register (specified by __register_address_write__)
@@ -23,7 +25,9 @@ entity register_bank is
         -- First register output (specified by __register_address_read_1__)
         register_output_1       : out std_logic_vector(DATA_SIZE - 1 downto 0);
         -- Second register output (specified by __register_address_read_2__)
-        register_output_2       : out std_logic_vector(DATA_SIZE - 1 downto 0)
+        register_output_2       : out std_logic_vector(DATA_SIZE - 1 downto 0);
+        -- Third register output (specified by __register_address_read_3__)
+        register_output_3       : out std_logic_vector(DATA_SIZE - 1 downto 0)
     );
 end entity register_bank;
 
@@ -46,5 +50,6 @@ begin
     -- Writing to the register outputs
     register_output_1 <= register_array(to_integer(unsigned(register_address_read_1)));
     register_output_2 <= register_array(to_integer(unsigned(register_address_read_2)));
+    register_output_3 <= register_array(to_integer(unsigned(register_address_read_3)));
 
 end architecture RTL;

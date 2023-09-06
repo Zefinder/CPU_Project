@@ -37,6 +37,7 @@ architecture RTL of cpu is
             alu_selector                       : out std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
             register_address_read_1            : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
             register_address_read_2            : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+            register_address_read_3            : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
             register_address_write             : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
             flag_address                       : out std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
             use_alu                            : out std_logic;
@@ -83,11 +84,13 @@ architecture RTL of cpu is
             rst                     : in  std_logic;
             register_address_read_1 : in  std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
             register_address_read_2 : in  std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+            register_address_read_3 : in  std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
             register_address_write  : in  std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
             register_load           : in  std_logic_vector(DATA_SIZE - 1 downto 0);
             write_register          : in  std_logic;
             register_output_1       : out std_logic_vector(DATA_SIZE - 1 downto 0);
-            register_output_2       : out std_logic_vector(DATA_SIZE - 1 downto 0)
+            register_output_2       : out std_logic_vector(DATA_SIZE - 1 downto 0);
+            register_output_3       : out std_logic_vector(DATA_SIZE - 1 downto 0)
         );
     end component register_bank;
 
@@ -122,41 +125,41 @@ architecture RTL of cpu is
     for all : branching_unit use entity work.branching_unit(RTL);
 
     -- Input operand of the ALU
-    signal operand_1, operand_2                             : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal operand_1, operand_2                                                      : std_logic_vector(DATA_SIZE - 1 downto 0);
     -- Output operand from the register for the ALU and RAM
-    signal register_operand_1                               : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal register_operand_1                                                        : std_logic_vector(DATA_SIZE - 1 downto 0);
     -- Output operand from the register for the ALU
-    signal register_operand_2                               : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal register_operand_2                                                        : std_logic_vector(DATA_SIZE - 1 downto 0);
+    -- Output operand from the register for the RAM address
+    signal register_operand_3                                                        : std_logic_vector(DATA_SIZE - 1 downto 0);
     -- Output operand from the control unit for the ALU and RAM
-    signal cu_operand_1                                     : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal cu_operand_1                                                              : std_logic_vector(DATA_SIZE - 1 downto 0);
     -- Output operand from the control unit for the ALU
-    signal cu_operand_2                                     : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal cu_operand_2                                                              : std_logic_vector(DATA_SIZE - 1 downto 0);
     -- Selector for the ALU
-    signal alu_selector                                     : std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
+    signal alu_selector                                                              : std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
     -- Result flags after process from the ALU
-    signal alu_flags_output                                 : std_logic_vector(2 ** FLAG_SELECTOR_SIZE - 1 downto 0);
+    signal alu_flags_output                                                          : std_logic_vector(2 ** FLAG_SELECTOR_SIZE - 1 downto 0);
     -- Output of the ALU
-    signal alu_output                                       : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal alu_output                                                                : std_logic_vector(DATA_SIZE - 1 downto 0);
     -- Selector for flags
-    signal flag_selector                                    : std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
+    signal flag_selector                                                             : std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
     -- Address to read a register
-    signal register_address_read_1, register_address_read_2 : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+    signal register_address_read_1, register_address_read_2, register_address_read_3 : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
     -- Address to write to a register
-    signal register_address_write                           : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+    signal register_address_write                                                    : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
     -- Data to load in a register
-    signal register_load                                    : std_logic_vector(DATA_SIZE - 1 downto 0);
-    -- Address to read or write in the RAM
-    signal ram_address                                      : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal register_load                                                             : std_logic_vector(DATA_SIZE - 1 downto 0);
     -- Output of the RAM
-    signal ram_output                                       : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal ram_output                                                                : std_logic_vector(DATA_SIZE - 1 downto 0);
     -- Data to load in the RAM
-    signal ram_load                                         : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal ram_load                                                                  : std_logic_vector(DATA_SIZE - 1 downto 0);
     -- Branching address as branching unit input
-    signal branching_address_input                          : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal branching_address_input                                                   : std_logic_vector(DATA_SIZE - 1 downto 0);
     -- Branching address as branching unit output
-    signal branching_address_output                         : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal branching_address_output                                                  : std_logic_vector(DATA_SIZE - 1 downto 0);
     -- Data used as offset for branching address
-    signal branching_offset                                 : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal branching_offset                                                          : std_logic_vector(DATA_SIZE - 1 downto 0);
 
     -- Output of the flags
     signal flag_output                        : std_logic;
@@ -200,15 +203,12 @@ begin
 
     register_load <= branching_address_output when use_branching_unit = '1' else
                      ram_output when use_memory_for_register = '1' else
-                     cu_operand_1 when use_alu = '0' else 
+                     cu_operand_1 when use_alu = '0' else
                      alu_output;
 
     ram_load <= register_operand_1 when use_register_for_memory = '1' else
                 cu_operand_1 when use_alu = '0' else
                 alu_output;
-    
-    -- TODO Change to 3rd register output            
-    ram_address <= register_operand_2;
 
     write_register <= branch_write_register when use_branching_unit = '1' else
                       cu_write_register;
@@ -237,6 +237,8 @@ begin
             register_address_read_1            => register_address_read_1,
             -- Second address for the register to output
             register_address_read_2            => register_address_read_2,
+            -- Third address for the register to output
+            register_address_read_3            => register_address_read_3,
             -- Addres for the register to write
             register_address_write             => register_address_write,
             -- Address for the flag to output
@@ -316,6 +318,8 @@ begin
             register_address_read_1 => register_address_read_1,
             -- Address for the second output
             register_address_read_2 => register_address_read_2,
+            -- Address for the third output
+            register_address_read_3 => register_address_read_3,
             -- Address for writing in the register bank
             register_address_write  => register_address_write,
             -- Data to write in the register bank 
@@ -325,7 +329,9 @@ begin
             -- First register output
             register_output_1       => register_operand_1,
             -- Second register output
-            register_output_2       => register_operand_2
+            register_output_2       => register_operand_2,
+            -- Third register output
+            register_output_3       => register_operand_3
         );
 
     -- Instantiation of the RAM, it is linked to the register bank
@@ -338,7 +344,7 @@ begin
             -- Enables writing in the RAM
             write     => write_ram,
             -- Address of cell to write or to read
-            address   => ram_address,
+            address   => register_operand_3,
             -- Data to write in the RAM
             value_in  => ram_load,
             -- Output of the RAM
