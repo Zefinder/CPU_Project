@@ -18,9 +18,9 @@ architecture testbench of control_unit_test is
             alu_selector                       : out std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
             register_address_read_1            : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
             register_address_read_2            : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+            register_address_read_3            : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
             register_address_write             : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
             flag_address                       : out std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
-            ram_address                        : out std_logic_vector(DATA_SIZE - 1 downto 0);
             use_alu                            : out std_logic;
             update_one_flag                    : out std_logic;
             use_register_1                     : out std_logic;
@@ -88,9 +88,9 @@ architecture testbench of control_unit_test is
     signal alu_selector                       : std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
     signal register_address_read_1            : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
     signal register_address_read_2            : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+    signal register_address_read_3            : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
     signal register_address_write             : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
     signal flag_address                       : std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
-    signal ram_address                        : std_logic_vector(DATA_SIZE - 1 downto 0);
     signal use_alu                            : std_logic;
     signal update_one_flag                    : std_logic;
     signal use_register_1                     : std_logic;
@@ -114,9 +114,9 @@ begin
             alu_selector                       => alu_selector,
             register_address_read_1            => register_address_read_1,
             register_address_read_2            => register_address_read_2,
+            register_address_read_3            => register_address_read_3,
             register_address_write             => register_address_write,
             flag_address                       => flag_address,
-            ram_address                        => ram_address,
             use_alu                            => use_alu,
             update_one_flag                    => update_one_flag,
             use_register_1                     => use_register_1,
@@ -168,13 +168,13 @@ begin
         report print_bit_error("Wrong one flag update", instruction_opcode(ALU_SEL_3), update_one_flag);
 
         assert register_address_read_1 = instruction_a(REGISTER_SELECTOR_SIZE - 1 downto 0)
-        report print_error("Wrong first register address", instruction_address(DATA_SIZE - 1 downto DATA_SIZE / 2), register_address_read_1) severity error;
+        report print_error("Wrong first register address", instruction_a(REGISTER_SELECTOR_SIZE - 1 downto 0), register_address_read_1) severity error;
 
         assert register_address_read_2 = instruction_b(REGISTER_SELECTOR_SIZE - 1 downto 0)
-        report print_error("Wrong second register address", instruction_address(DATA_SIZE / 2 - 1 downto 0), register_address_read_2) severity error;
+        report print_error("Wrong second register address", instruction_b(REGISTER_SELECTOR_SIZE - 1 downto 0), register_address_read_2) severity error;
 
-        assert ram_address = instruction_address
-        report print_error("Wrong RAM address", instruction_address, ram_address) severity error;
+        assert register_address_read_3 = instruction_address(REGISTER_SELECTOR_SIZE - 1 downto 0)
+        report print_error("Wrong third register address", instruction_address, register_address_read_3) severity error;
 
         assert use_branching_offset = instruction_opcode(EN_REL_BRANCH)
         report print_bit_error("Wrong branching offset enabling", instruction_opcode(EN_REL_BRANCH), use_branching_offset) severity error;

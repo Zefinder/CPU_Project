@@ -10,7 +10,7 @@ I will probably make a compiler, an interpreter and documentation of this CPU so
 This CPU has a few components. The one that are ok are marked with (\/) currently developped are marked with (\*), the ones that are developped but where tests are lacking or are simply not implemented are marked with (+), the ones that still need to be developped are marked with (#) and finally the ones that will be improved are marked with ($).
 
 - ALU				(\/)($) (Add memory read or memory write (needs to be discussed...))
-- Register bank 	(\/)($) (Add 3rd register output)
+- Register bank 	(\/)
 - Flag bank			(\/)
 - Branching unit	(\/)
 - RAM memory		(\/)($) (Add register offset)
