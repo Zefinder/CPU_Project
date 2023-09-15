@@ -44,6 +44,7 @@ architecture RTL of cpu is
             update_one_flag                    : out std_logic;
             use_register_1                     : out std_logic;
             use_register_2                     : out std_logic;
+            use_register_for_register          : out std_logic;
             use_memory_for_register            : out std_logic;
             use_branching_unit                 : out std_logic;
             use_branching_offset               : out std_logic;
@@ -171,6 +172,8 @@ architecture RTL of cpu is
     signal use_register_1                     : std_logic;
     -- Uses the second register as an operand for the ALU or to load in the RAM
     signal use_register_2                     : std_logic;
+    -- Uses the register output as register input
+    signal use_register_for_register          : std_logic;
     -- Uses the output of the memory as data to load in the register
     signal use_memory_for_register            : std_logic;
     -- Enables writing in the register bank
@@ -201,10 +204,13 @@ begin
     operand_2 <= register_operand_2 when use_register_2 = '1' else
                  cu_operand_2;
 
+    -- TODO Redo this condition for priority check
     register_load <= branching_address_output when use_branching_unit = '1' else
+                     register_operand_1 when use_register_for_register = '1' else
                      ram_output when use_memory_for_register = '1' else
-                     cu_operand_1 when use_alu = '0' else
-                     alu_output;
+                     alu_output when use_alu = '1' else
+                     register_operand_1 when use_register_for_register = '1' else
+                     cu_operand_1;
 
     write_register <= branch_write_register when use_branching_unit = '1' else
                       cu_write_register;
@@ -247,6 +253,8 @@ begin
             use_register_1                     => use_register_1,
             -- Enables the second register output
             use_register_2                     => use_register_2,
+            -- Uses register as register input
+            use_register_for_register => use_register_for_register,
             -- Uses the memory as register input
             use_memory_for_register            => use_memory_for_register,
             -- Uses the branching output for register load

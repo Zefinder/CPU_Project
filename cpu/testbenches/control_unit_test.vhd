@@ -25,6 +25,7 @@ architecture testbench of control_unit_test is
             update_one_flag                    : out std_logic;
             use_register_1                     : out std_logic;
             use_register_2                     : out std_logic;
+            use_register_for_register          : out std_logic;
             use_memory_for_register            : out std_logic;
             use_branching_unit                 : out std_logic;
             use_branching_offset               : out std_logic;
@@ -62,6 +63,8 @@ architecture testbench of control_unit_test is
     constant USE_MEM    : natural := 5;
     -- Bit putting register output to memory input
     constant MEM_OFFSET : natural := 4;
+    -- Bit putting register output to register input
+    constant USE_REG    : natural := 0;
 
     -- Branching opcodes bits
 
@@ -82,19 +85,21 @@ architecture testbench of control_unit_test is
 
     for all : control_unit use entity work.control_unit(RTL);
 
-    signal instruction_vector                 : std_logic_vector(INSTRUCTION_SIZE - 1 downto 0) := (x"00", x"12", x"34", x"56");
-    signal operand1                           : std_logic_vector(DATA_SIZE - 1 downto 0);
-    signal operand2                           : std_logic_vector(DATA_SIZE - 1 downto 0);
-    signal alu_selector                       : std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
-    signal register_address_read_1            : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
-    signal register_address_read_2            : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
-    signal register_address_read_3            : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
-    signal register_address_write             : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
-    signal flag_address                       : std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
-    signal use_alu                            : std_logic;
-    signal update_one_flag                    : std_logic;
-    signal use_register_1                     : std_logic;
-    signal use_register_2                     : std_logic;
+    signal instruction_vector        : std_logic_vector(INSTRUCTION_SIZE - 1 downto 0) := (x"00", x"12", x"34", x"56");
+    signal operand1                  : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal operand2                  : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal alu_selector              : std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
+    signal register_address_read_1   : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+    signal register_address_read_2   : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+    signal register_address_read_3   : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+    signal register_address_write    : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
+    signal flag_address              : std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
+    signal use_alu                   : std_logic;
+    signal update_one_flag           : std_logic;
+    signal use_register_1            : std_logic;
+    signal use_register_2            : std_logic;
+    signal use_register_for_register : std_logic;
+
     signal use_memory_for_register            : std_logic;
     signal use_branching_unit                 : std_logic;
     signal use_branching_offset               : std_logic;
@@ -121,6 +126,7 @@ begin
             update_one_flag                    => update_one_flag,
             use_register_1                     => use_register_1,
             use_register_2                     => use_register_2,
+            use_register_for_register => use_register_for_register,
             use_memory_for_register            => use_memory_for_register,
             use_branching_unit                 => use_branching_unit,
             use_branching_offset               => use_branching_offset,
@@ -187,6 +193,9 @@ begin
 
         assert use_register_for_branching_offset = instruction_opcode(USE_REG_OFFSET)
         report print_bit_error("Wrong using second register for branching offset enabling", instruction_opcode(USE_REG_OFFSET), use_register_for_branching_offset) severity error;
+
+        assert use_register_for_register = instruction_opcode(USE_REG)
+        report print_bit_error("Wrong using first register for register load enabling", instruction_opcode(USE_REG), use_register_for_register) severity error;
 
         if instruction_opcode(EN_ALU) = '1' then
             assert use_alu = '1'

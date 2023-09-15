@@ -32,6 +32,8 @@ entity control_unit is
         use_register_1                     : out std_logic;
         -- Uses the content of a register and outputs it to the second output (specified by __register_address_read_2__)
         use_register_2                     : out std_logic;
+        -- Uses the register output as register input
+        use_register_for_register          : out std_logic;
         -- Uses the content of the memory cell for the input of the register bank (specified by __memory_address_read__)
         use_memory_for_register            : out std_logic;
         -- Uses the output of the branching unit as load for the register
@@ -74,14 +76,14 @@ end entity control_unit;
 --
 -- | Bit position | Function |
 -- | :----------: | :------: |
--- | Bit 7 | STR_MEM |
--- | Bit 6 | STR_REG |
--- | Bit 5 | USE_MEM |
--- | Bit 4 | MEM_OFFSET |
--- | Bit 3 | EN_ALU (Always 0) |
--- | Bit 2 | UNUSED |
--- | Bit 1 | EN_BRANCH (Always 0) |
--- | Bit 0 | UNUSED |
+-- |    Bit 7     | STR_MEM |
+-- |    Bit 6     | STR_REG |
+-- |    Bit 5     | USE_MEM |
+-- |    Bit 4     | MEM_OFFSET |
+-- |    Bit 3     | EN_ALU (Always 0) |
+-- |    Bit 2     | UNUSED |
+-- |    Bit 1     | EN_BRANCH (Always 0) |
+-- |    Bit 0     | USE_REG |
 --
 -- ## For branch instructions
 --
@@ -117,13 +119,15 @@ architecture RTL of control_unit is
     -- Non branching opcode bits
 
     -- Bit enabling storage in the RAM memory
-    constant STR_MEM : natural := 7;
+    constant STR_MEM    : natural := 7;
     -- Bit enabling storage in the register bank
-    constant STR_REG : natural := 6;
+    constant STR_REG    : natural := 6;
     -- Bit putting memory output to register input
-    constant USE_MEM : natural := 5;
-    -- Bit putting register output to memory input
+    constant USE_MEM    : natural := 5;
+    -- Bit putting register output to memory offset input
     constant MEM_OFFSET : natural := 4;
+    -- Bit putting register output to register input
+    constant USE_REG    : natural := 0;
 
     -- Branching opcodes bits
 
@@ -179,6 +183,8 @@ begin
         branch_invert_flag                 <= instruction_opcode(INV_FLAG);
         use_register_for_branching_address <= instruction_opcode(USE_REG_ADDR);
         use_register_for_branching_offset  <= instruction_opcode(USE_REG_OFFSET);
+        
+        use_register_for_register <= instruction_opcode(USE_REG);
 
         -- If the ALU is on, then you don't use the other opcode bits the same way
         if instruction_opcode(EN_ALU) = '1' then
@@ -187,7 +193,7 @@ begin
 
             -- We don't use memory for register and register for memory
             use_memory_for_register <= '0';
-            use_ram_offset <= '0';
+            use_ram_offset          <= '0';
 
             -- We do not use the branching unit
             use_branching_unit <= '0';
@@ -234,7 +240,7 @@ begin
 
                 -- We don't use memory for register and register for memory
                 use_memory_for_register <= '0';
-                use_ram_offset <= '0';
+                use_ram_offset          <= '0';
 
                 -- We write in PC so we write in the register
                 write_register <= '1';

@@ -13,7 +13,7 @@ This CPU has a few components. The one that are ok are marked with (\/) currentl
 - Register bank 	(\/)
 - Flag bank			(\/)
 - Branching unit	(\/)
-- RAM memory		(\/)
+- RAM memory		(\/) (Add offset multiplication [R0, R1, #2])
 - Control unit      (\/)
 - CPU as a whole    (\*)(+)
 
@@ -206,7 +206,7 @@ All opcode specifications are detailed in the table and explanations below:
 | **Bit 3** |   EN_ALU (1)   |     |    EN_ALU (0)    |     |   EN_ALU (0)    |
 | **Bit 2** |   ALU_SEL_2    |     |     INV_FLAG     |     |     UNUSED      |
 | **Bit 1** |   ALU_SEL_1    |     |  EN_BRANCH (1)   |     |  EN_BRANCH (0)  |
-| **Bit 0** |   ALU_SEL_0    |     |  EN_REL_BRANCH   |     |     UNUSED      |
+| **Bit 0** |   ALU_SEL_0    |     |  EN_REL_BRANCH   |     |     USE_REG     |
 
 Bit names have pretty self-explanatory names but it's always good to be sure of what you are dealing with. Note that this is a little explanation, for a complete one please read the pdf that will arrive maybe someday or read the code!
 - ALU_SEL: Selector of the ALU - 4 bits so 16 operations, 7 calculations operations and 9 flag manipulation operations
@@ -222,6 +222,7 @@ Bit names have pretty self-explanatory names but it's always good to be sure of 
 - STR_REG: Stores in register
 - USE_MEM: Uses memory as register load
 - MEM_OFFSET: Uses register as offset for memory address
+- USE_REG: Uses register as register input
 
 Yet another little remark: note that for a same category, if it can use two times a register it won't be necessarily the same! For example the ALU can use 2 registers, it is totally possible to do like `ADD R2 R0 R1`. Same thing for branching: `BCC ~R1` is the same thing as `BCC PC R1` and will branch if carry clear to `PC + R1`.
 
@@ -250,7 +251,7 @@ All opcodes marked with \* are opcodes that are not used with their defined opco
 
 All opcodes marked with \*\* are unofficial opcodes. They are opcodes that uses a combination of existing functionnality to do something that was not meant for because of clock cycles configuration. Most of them must be followed by a NOPs to be working normally. They exist because of the conception of the CPU allows it. 
 
-WHERE `LDR`??? Well some MOV are mistakes for now... And for now can't do something like `MOV R0 R1`...
+WHERE `LDR`??? Well some MOV are mistakes for now...
 
 If you think that we are missing of ALU operations, I totally agree! We could at least these few ones `ASL`, `ASR`, `LSL`, `LSR`, `ROR`, `ROL`
 
