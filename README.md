@@ -13,9 +13,9 @@ This CPU has a few components. The one that are ok are marked with (\/) currentl
 - Register bank 	(\/)
 - Flag bank			(\/)
 - Branching unit	(\/)
-- RAM memory		(\/)($) (Add register offset)
+- RAM memory		(\/)
 - Control unit      (\/)
-- CPU as a whole    (\*)(+)($) (Add 3rd register output)
+- CPU as a whole    (\*)(+)
 
 The ALU does not have all the instructions I wanted to have (rol ror asl, etc...) This can be possible if the ALU takes a register and number + register instead of the possibility of 2 numbers... This would add 16 additional operations, this will be a big boy ALU :D.
 
@@ -202,7 +202,7 @@ All opcode specifications are detailed in the table and explanations below:
 | **Bit 7** |     UNUSED     |     |    FLAG_SEL_1    |     |     STR_MEM     |
 | **Bit 6** |   ALU_SEL_3    |     |    FLAG_SEL_0    |     |     STR_REG     |
 | **Bit 5** |   USE_REG_2    |     |  USE_REG_OFFSET  |     |     USE_MEM     |
-| **Bit 4** |   USE_REG_1    |     |   USE_REG_ADDR   |     |     USE_REG     |
+| **Bit 4** |   USE_REG_1    |     |   USE_REG_ADDR   |     |   MEM_OFFSET    |
 | **Bit 3** |   EN_ALU (1)   |     |    EN_ALU (0)    |     |   EN_ALU (0)    |
 | **Bit 2** |   ALU_SEL_2    |     |     INV_FLAG     |     |     UNUSED      |
 | **Bit 1** |   ALU_SEL_1    |     |  EN_BRANCH (1)   |     |  EN_BRANCH (0)  |
@@ -221,30 +221,30 @@ Bit names have pretty self-explanatory names but it's always good to be sure of 
 - STR_MEM: Stores in memory
 - STR_REG: Stores in register
 - USE_MEM: Uses memory as register load
-- USE_REG: Uses register as memory load
+- MEM_OFFSET: Uses register as offset for memory address
 
 Yet another little remark: note that for a same category, if it can use two times a register it won't be necessarily the same! For example the ALU can use 2 registers, it is totally possible to do like `ADD R2 R0 R1`. Same thing for branching: `BCC ~R1` is the same thing as `BCC PC R1` and will branch if carry clear to `PC + R1`.
 
 ### Instruction map
 This map does not contain any information about addressing mode, for this refer to the (not yet written) explanatory pdf of the CPU.
-|        |  0X   |  1X   |  2X   |  3X   |  4X   |  5X   |  6X   |  7X   |  8X   |  9X   |  AX   |  BX   |    CX     |     DX      |     EX      |    FX    |
-| :----: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :-------: | :---------: | :---------: | :------: |
-| **X0** |  NOP  | NOP\* | NOP\* | NOP\* |  MOV  | MOV\* |  MOV  | MOV\* |  STR  |  STR  | STR\* | STR\* | STRMV\*\* | STREGMV\*\* | STRMEMV\*\* | SWAP\*\* |
-| **X1** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | MOV\* | MOV\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STREGMV\*\* | STRMEMV\*\* | SWAP\*\* |
-| **X2** |  BCS  |  BCS  |  BCS  |  BCS  |  BEQ  |  BEQ  |  BEQ  |  BEQ  |  BMI  |  BMI  |  BMI  |  BMI  |    BVS    |     BVS     |     BVS     |   BVS    |
-| **X3** |  BCS  |  BCS  |  BCS  |  BCS  |  BEQ  |  BEQ  |  BEQ  |  BEQ  |  BMI  |  BMI  |  BMI  |  BMI  |    BVS    |     BVS     |     BVS     |   BVS    |
-| **X4** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | MOV\* | MOV\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STREGMV\*\* | STRMEMV\*\* | SWAP\*\* |
-| **X5** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | MOV\* | MOV\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STREGMV\*\* | STRMEMV\*\* | SWAP\*\* |
-| **X6** |  BCC  |  BCC  |  BCC  |  BCC  |  BNE  |  BNE  |  BNE  |  BNE  |  BPL  |  BPL  |  BPL  |  BPL  |    BVC    |     BVC     |     BVC     |   BVC    |
-| **X7** |  BCC  |  BCC  |  BCC  |  BCC  |  BNE  |  BNE  |  BNE  |  BNE  |  BPL  |  BPL  |  BPL  |  BPL  |    BVC    |     BVC     |     BVC     |   BVC    |
-| **X8** |  ADD  |  ADD  |  ADD  |  ADD  |  SEC  | SEC\* | SEC\* | SEC\* | ADD\* | ADD\* | ADD\* | ADD\* |   SEC\*   |    SEC\*    |    SEC\*    |  SEC\*   |
-| **X9** |  SUB  |  SUB  |  SUB  |  SUB  |  SEZ  | SEZ\* | SEZ\* | SEZ\* | SUB\* | SUB\* | SUB\* | SUB\* |   SEZ\*   |    SEZ\*    |    SEZ\*    |  SEZ\*   |
-| **XA** |  MUL  |  MUL  |  MUL  |  MUL  |  SEN  | SEN\* | SEN\* | SEN\* | MUL\* | MUL\* | MUL\* | MUL\* |   SEN\*   |    SEN\*    |    SEN\*    |  SEN\*   |
-| **XB** |  AND  |  AND  |  AND  |  AND  |  SEV  | SEV\* | SEV\* | SEV\* | AND\* | AND\* | AND\* | AND\* |   SEV\*   |    SEV\*    |    SEV\*    |  SEV\*   |
-| **XC** |  OR   |  OR   |  OR   |  OR   |  CLC  | CLC\* | CLC\* | CLC\* | OR\*  | OR\*  | OR\*  | OR\*  |   CLC\*   |    CLC\*    |    CLC\*    |  CLC\*   |
-| **XD** |  XOR  |  XOR  |  XOR  |  XOR  |  CLZ  | CLZ\* | CLZ\* | CLZ\* | XOR\* | XOR\* | XOR\* | XOR\* |   CLZ\*   |    CLZ\*    |    CLZ\*    |  CLZ\*   |
-| **XE** |  NOT  |  NOT  | NOT\* | NOT\* |  CLN  | CLN\* | CLN\* | CLN\* | NOT\* | NOT\* | NOT\* | NOT\* |   CLN\*   |    CLN\*    |    CLN\*    |  CLN\*   |
-| **XF** | CMP\* |  CMP  | CMP\* | CMP\* |  CLV  | CLV\* | CLV\* | CLV\* | CMP\* | CMP\* | CMP\* | CMP\* |   CLV\*   |    CLV\*    |    CLV\*    |  CLV\*   |
+|        |  0X   |  1X   |  2X   |  3X   |  4X   |  5X   |  6X   |  7X   |  8X   |  9X   |  AX   |  BX   |    CX     |     DX      |    EX    |     FX      |
+| :----: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :-------: | :---------: | :------: | :---------: |
+| **X0** |  NOP  | NOP\* | NOP\* | NOP\* |  MOV  | MOV\* |  MOV  | MOV\* |  STR  |  STR  | STR\* | STR\* | STRMV\*\* | STOFFMV\*\* | SWAP\*\* | SWAPOFF\*\* |
+| **X1** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | MOV\* | MOV\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STOFFMV\*\* | SWAP\*\* | SWAPOFF\*\* |
+| **X2** |  BCS  |  BCS  |  BCS  |  BCS  |  BEQ  |  BEQ  |  BEQ  |  BEQ  |  BMI  |  BMI  |  BMI  |  BMI  |    BVS    |     BVS     |   BVS    |     BVS     |
+| **X3** |  BCS  |  BCS  |  BCS  |  BCS  |  BEQ  |  BEQ  |  BEQ  |  BEQ  |  BMI  |  BMI  |  BMI  |  BMI  |    BVS    |     BVS     |   BVS    |     BVS     |
+| **X4** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | MOV\* | MOV\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STOFFMV\*\* | SWAP\*\* | SWAPOFF\*\* |
+| **X5** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | MOV\* | MOV\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STOFFMV\*\* | SWAP\*\* | SWAPOFF\*\* |
+| **X6** |  BCC  |  BCC  |  BCC  |  BCC  |  BNE  |  BNE  |  BNE  |  BNE  |  BPL  |  BPL  |  BPL  |  BPL  |    BVC    |     BVC     |   BVC    |     BVC     |
+| **X7** |  BCC  |  BCC  |  BCC  |  BCC  |  BNE  |  BNE  |  BNE  |  BNE  |  BPL  |  BPL  |  BPL  |  BPL  |    BVC    |     BVC     |   BVC    |     BVC     |
+| **X8** |  ADD  |  ADD  |  ADD  |  ADD  |  SEC  | SEC\* | SEC\* | SEC\* | ADD\* | ADD\* | ADD\* | ADD\* |   SEC\*   |    SEC\*    |  SEC\*   |    SEC\*    |
+| **X9** |  SUB  |  SUB  |  SUB  |  SUB  |  SEZ  | SEZ\* | SEZ\* | SEZ\* | SUB\* | SUB\* | SUB\* | SUB\* |   SEZ\*   |    SEZ\*    |  SEZ\*   |    SEZ\*    |
+| **XA** |  MUL  |  MUL  |  MUL  |  MUL  |  SEN  | SEN\* | SEN\* | SEN\* | MUL\* | MUL\* | MUL\* | MUL\* |   SEN\*   |    SEN\*    |  SEN\*   |    SEN\*    |
+| **XB** |  AND  |  AND  |  AND  |  AND  |  SEV  | SEV\* | SEV\* | SEV\* | AND\* | AND\* | AND\* | AND\* |   SEV\*   |    SEV\*    |  SEV\*   |    SEV\*    |
+| **XC** |  OR   |  OR   |  OR   |  OR   |  CLC  | CLC\* | CLC\* | CLC\* | OR\*  | OR\*  | OR\*  | OR\*  |   CLC\*   |    CLC\*    |  CLC\*   |    CLC\*    |
+| **XD** |  XOR  |  XOR  |  XOR  |  XOR  |  CLZ  | CLZ\* | CLZ\* | CLZ\* | XOR\* | XOR\* | XOR\* | XOR\* |   CLZ\*   |    CLZ\*    |  CLZ\*   |    CLZ\*    |
+| **XE** |  NOT  |  NOT  | NOT\* | NOT\* |  CLN  | CLN\* | CLN\* | CLN\* | NOT\* | NOT\* | NOT\* | NOT\* |   CLN\*   |    CLN\*    |  CLN\*   |    CLN\*    |
+| **XF** | CMP\* |  CMP  | CMP\* | CMP\* |  CLV  | CLV\* | CLV\* | CLV\* | CMP\* | CMP\* | CMP\* | CMP\* |   CLV\*   |    CLV\*    |  CLV\*   |    CLV\*    |
 
 All opcodes marked with \* are opcodes that are not used with their defined opcode (they are here since there are unused bits).
 

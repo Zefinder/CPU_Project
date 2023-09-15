@@ -26,14 +26,14 @@ architecture testbench of control_unit_test is
             use_register_1                     : out std_logic;
             use_register_2                     : out std_logic;
             use_memory_for_register            : out std_logic;
-            use_register_for_memory            : out std_logic;
             use_branching_unit                 : out std_logic;
             use_branching_offset               : out std_logic;
             use_register_for_branching_address : out std_logic;
             use_register_for_branching_offset  : out std_logic;
             branch_invert_flag                 : out std_logic;
             write_register                     : out std_logic;
-            write_ram                          : out std_logic
+            write_ram                          : out std_logic;
+            use_ram_offset                     : out std_logic
         );
     end component control_unit;
 
@@ -55,13 +55,13 @@ architecture testbench of control_unit_test is
     -- Non branching opcode bits
 
     -- Bit enabling storage in the RAM memory
-    constant STR_MEM : natural := 7;
+    constant STR_MEM    : natural := 7;
     -- Bit enabling storage in the register bank
-    constant STR_REG : natural := 6;
+    constant STR_REG    : natural := 6;
     -- Bit putting memory output to register input
-    constant USE_MEM : natural := 5;
+    constant USE_MEM    : natural := 5;
     -- Bit putting register output to memory input
-    constant USE_REG : natural := 4;
+    constant MEM_OFFSET : natural := 4;
 
     -- Branching opcodes bits
 
@@ -96,7 +96,6 @@ architecture testbench of control_unit_test is
     signal use_register_1                     : std_logic;
     signal use_register_2                     : std_logic;
     signal use_memory_for_register            : std_logic;
-    signal use_register_for_memory            : std_logic;
     signal use_branching_unit                 : std_logic;
     signal use_branching_offset               : std_logic;
     signal use_register_for_branching_address : std_logic;
@@ -104,6 +103,7 @@ architecture testbench of control_unit_test is
     signal branch_invert_flag                 : std_logic;
     signal write_register                     : std_logic;
     signal write_ram                          : std_logic;
+    signal use_ram_offset                     : std_logic;
 begin
 
     control_unit_inst : component control_unit
@@ -122,14 +122,14 @@ begin
             use_register_1                     => use_register_1,
             use_register_2                     => use_register_2,
             use_memory_for_register            => use_memory_for_register,
-            use_register_for_memory            => use_register_for_memory,
             use_branching_unit                 => use_branching_unit,
             use_branching_offset               => use_branching_offset,
             use_register_for_branching_address => use_register_for_branching_address,
             use_register_for_branching_offset  => use_register_for_branching_offset,
             branch_invert_flag                 => branch_invert_flag,
             write_register                     => write_register,
-            write_ram                          => write_ram
+            write_ram                          => write_ram,
+            use_ram_offset                     => use_ram_offset
         );
 
     control_unit_process_test : process is
@@ -195,8 +195,8 @@ begin
             assert use_memory_for_register = '0'
             report print_bit_error("Using memory as register input must be off", '0', use_memory_for_register) severity error;
 
-            assert use_register_for_memory = '0'
-            report print_bit_error("Using register as memory input must be off", '0', use_register_for_memory) severity error;
+            assert use_ram_offset = '0'
+            report print_bit_error("Using register as memory input must be off", '0', use_ram_offset) severity error;
 
             assert use_register_1 = instruction_opcode(USE_REG_1)
             report print_bit_error("Using first register as ALU input must be off", instruction_opcode(USE_REG_1), use_register_1) severity error;
@@ -242,8 +242,8 @@ begin
                 assert use_memory_for_register = '0'
                 report print_bit_error("Using memory as register input must be off for branching", '0', use_memory_for_register) severity error;
 
-                assert use_register_for_memory = '0'
-                report print_bit_error("Using register as memory input must be off for branching", '0', use_register_for_memory) severity error;
+                assert use_ram_offset = '0'
+                report print_bit_error("Using register as memory input must be off for branching", '0', use_ram_offset) severity error;
 
                 assert write_register = '1'
                 report print_bit_error("Writing in register must be enabled for branching", '1', write_register) severity error;
@@ -260,8 +260,8 @@ begin
                 assert use_memory_for_register = instruction_opcode(USE_MEM)
                 report print_bit_error("Wrong use memory for register input enabling for storing", instruction_opcode(USE_MEM), use_memory_for_register) severity error;
 
-                assert use_register_for_memory = instruction_opcode(USE_REG)
-                report print_bit_error("Wrong use register for memory input enabling for storing", instruction_opcode(USE_REG), use_register_for_memory) severity error;
+                assert use_ram_offset = instruction_opcode(MEM_OFFSET)
+                report print_bit_error("Wrong use register for memory input enabling for storing", instruction_opcode(MEM_OFFSET), use_ram_offset) severity error;
 
                 assert use_branching_unit = '0'
                 report print_bit_error("Branching unit must be disabled for storing", '0', use_branching_unit) severity error;

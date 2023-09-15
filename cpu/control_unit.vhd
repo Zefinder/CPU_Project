@@ -34,8 +34,6 @@ entity control_unit is
         use_register_2                     : out std_logic;
         -- Uses the content of the memory cell for the input of the register bank (specified by __memory_address_read__)
         use_memory_for_register            : out std_logic;
-        -- Uses the content of the register for the input of the memory (specified by __register_address_read_1__)
-        use_register_for_memory            : out std_logic;
         -- Uses the output of the branching unit as load for the register
         use_branching_unit                 : out std_logic;
         -- Uses the branching offset
@@ -49,7 +47,9 @@ entity control_unit is
         -- Indicate if the register at address __register_address_write__ must be written
         write_register                     : out std_logic;
         -- Indicate if the ram memory cell at address __ram_address_write__ must be written
-        write_ram                          : out std_logic
+        write_ram                          : out std_logic;
+        -- Uses the offset for __ram_address_write__
+        use_ram_offset                     : out std_logic
     );
 end entity control_unit;
 
@@ -77,7 +77,7 @@ end entity control_unit;
 -- | Bit 7 | STR_MEM |
 -- | Bit 6 | STR_REG |
 -- | Bit 5 | USE_MEM |
--- | Bit 4 | USE_REG |
+-- | Bit 4 | MEM_OFFSET |
 -- | Bit 3 | EN_ALU (Always 0) |
 -- | Bit 2 | UNUSED |
 -- | Bit 1 | EN_BRANCH (Always 0) |
@@ -123,7 +123,7 @@ architecture RTL of control_unit is
     -- Bit putting memory output to register input
     constant USE_MEM : natural := 5;
     -- Bit putting register output to memory input
-    constant USE_REG : natural := 4;
+    constant MEM_OFFSET : natural := 4;
 
     -- Branching opcodes bits
 
@@ -156,7 +156,7 @@ architecture RTL of control_unit is
 
 begin
 
-    alu_selector_sig <= instruction_opcode(ALU_SEL_3) & instruction_opcode(ALU_SEL_2) & instruction_opcode(ALU_SEL_1) & instruction_opcode(ALU_SEL_0);
+    alu_selector_sig    <= instruction_opcode(ALU_SEL_3) & instruction_opcode(ALU_SEL_2) & instruction_opcode(ALU_SEL_1) & instruction_opcode(ALU_SEL_0);
     instruction_opcode  <= instruction_vector(4 * DATA_SIZE - 1 downto 3 * DATA_SIZE);
     instruction_a       <= instruction_vector(3 * DATA_SIZE - 1 downto 2 * DATA_SIZE);
     instruction_b       <= instruction_vector(2 * DATA_SIZE - 1 downto DATA_SIZE);
@@ -187,7 +187,7 @@ begin
 
             -- We don't use memory for register and register for memory
             use_memory_for_register <= '0';
-            use_register_for_memory <= '0';
+            use_ram_offset <= '0';
 
             -- We do not use the branching unit
             use_branching_unit <= '0';
@@ -234,7 +234,7 @@ begin
 
                 -- We don't use memory for register and register for memory
                 use_memory_for_register <= '0';
-                use_register_for_memory <= '0';
+                use_ram_offset <= '0';
 
                 -- We write in PC so we write in the register
                 write_register <= '1';
@@ -255,7 +255,7 @@ begin
                 use_memory_for_register <= instruction_opcode(USE_MEM);
 
                 -- We use the register output for the memory input if the bit is set
-                use_register_for_memory <= instruction_opcode(USE_REG);
+                use_ram_offset <= instruction_opcode(MEM_OFFSET);
 
                 -- We write in the memory if the bit is set
                 write_ram <= instruction_opcode(STR_MEM);

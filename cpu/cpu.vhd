@@ -45,14 +45,14 @@ architecture RTL of cpu is
             use_register_1                     : out std_logic;
             use_register_2                     : out std_logic;
             use_memory_for_register            : out std_logic;
-            use_register_for_memory            : out std_logic;
             use_branching_unit                 : out std_logic;
             use_branching_offset               : out std_logic;
             use_register_for_branching_address : out std_logic;
             use_register_for_branching_offset  : out std_logic;
             branch_invert_flag                 : out std_logic;
             write_register                     : out std_logic;
-            write_ram                          : out std_logic
+            write_ram                          : out std_logic;
+            use_ram_offset                     : out std_logic
         );
     end component control_unit;
 
@@ -96,12 +96,14 @@ architecture RTL of cpu is
 
     component ram_memory
         port(
-            clk       : in  std_logic;
-            rst       : in  std_logic;
-            write     : in  std_logic;
-            address   : in  std_logic_vector(DATA_SIZE - 1 downto 0);
-            value_in  : in  std_logic_vector(DATA_SIZE - 1 downto 0);
-            value_out : out std_logic_vector(DATA_SIZE - 1 downto 0)
+            clk        : in  std_logic;
+            rst        : in  std_logic;
+            write      : in  std_logic;
+            use_offset : in  std_logic;
+            address    : in  std_logic_vector(DATA_SIZE - 1 downto 0);
+            offset     : in  std_logic_vector(DATA_SIZE - 1 downto 0);
+            value_in   : in  std_logic_vector(DATA_SIZE - 1 downto 0);
+            value_out  : out std_logic_vector(DATA_SIZE - 1 downto 0)
         );
     end component ram_memory;
 
@@ -152,8 +154,6 @@ architecture RTL of cpu is
     signal register_load                                                             : std_logic_vector(DATA_SIZE - 1 downto 0);
     -- Output of the RAM
     signal ram_output                                                                : std_logic_vector(DATA_SIZE - 1 downto 0);
-    -- Data to load in the RAM
-    signal ram_load                                                                  : std_logic_vector(DATA_SIZE - 1 downto 0);
     -- Branching address as branching unit input
     signal branching_address_input                                                   : std_logic_vector(DATA_SIZE - 1 downto 0);
     -- Branching address as branching unit output
@@ -173,8 +173,6 @@ architecture RTL of cpu is
     signal use_register_2                     : std_logic;
     -- Uses the output of the memory as data to load in the register
     signal use_memory_for_register            : std_logic;
-    -- Uses the output of the register as data to load in the RAM
-    signal use_register_for_memory            : std_logic;
     -- Enables writing in the register bank
     signal cu_write_register                  : std_logic;
     -- Enables writing in the register bank
@@ -183,6 +181,8 @@ architecture RTL of cpu is
     signal write_register                     : std_logic;
     -- Enables writing in the RAM
     signal write_ram                          : std_logic;
+    -- Enables RAM offset address
+    signal use_ram_offset                     : std_logic;
     -- Enables branching unit
     signal use_branching_unit                 : std_logic;
     -- Uses offset for branching
@@ -205,10 +205,6 @@ begin
                      ram_output when use_memory_for_register = '1' else
                      cu_operand_1 when use_alu = '0' else
                      alu_output;
-
-    ram_load <= register_operand_1 when use_register_for_memory = '1' else
-                cu_operand_1 when use_alu = '0' else
-                alu_output;
 
     write_register <= branch_write_register when use_branching_unit = '1' else
                       cu_write_register;
@@ -253,8 +249,6 @@ begin
             use_register_2                     => use_register_2,
             -- Uses the memory as register input
             use_memory_for_register            => use_memory_for_register,
-            -- Uses the register as memory input
-            use_register_for_memory            => use_register_for_memory,
             -- Uses the branching output for register load
             use_branching_unit                 => use_branching_unit,
             -- Uses the branching offset
@@ -268,7 +262,9 @@ begin
             -- Enables writing in the register
             write_register                     => cu_write_register,
             -- Enables writing in the RAM
-            write_ram                          => write_ram
+            write_ram                          => write_ram,
+            -- Enables offset for RAM
+            use_ram_offset                     => use_ram_offset
         );
 
     -- Instantiation of the ALU, it is linked to the flag and register banks and the RAM
@@ -338,17 +334,21 @@ begin
     ram_memory_inst : component ram_memory
         port map(
             -- Clock used to update RAM cells
-            clk       => clk,
+            clk        => clk,
             -- Reset used to put all memory to 0
-            rst       => rst,
+            rst        => rst,
             -- Enables writing in the RAM
-            write     => write_ram,
+            write      => write_ram,
+            -- Enables offset for address
+            use_offset => use_ram_offset,
             -- Address of cell to write or to read
-            address   => register_operand_3,
+            address    => register_operand_3,
+            -- Value of the offset
+            offset     => register_operand_2,
             -- Data to write in the RAM
-            value_in  => ram_load,
+            value_in   => register_operand_1,
             -- Output of the RAM
-            value_out => ram_output
+            value_out  => ram_output
         );
 
     branching_unit_inst : component branching_unit
