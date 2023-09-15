@@ -5,5 +5,5 @@ MOV R1 $21
 MOV R10 $30
 
 STR R0 $10
-STR $21 $11
 STR R1 [R10, R2]
+

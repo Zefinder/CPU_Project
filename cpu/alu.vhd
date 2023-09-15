@@ -3,7 +3,7 @@ library utils;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use utils.cpu_utils.all;
-use utils.cpu_calculation_utils.all;
+use utils.calculation_utils.all;
 
 entity alu is
     port(
@@ -16,9 +16,12 @@ entity alu is
 end entity alu;
 
 architecture RTL of alu is
+    -- Used as padding for multiplication
+    constant zero_signal : std_logic_vector(output'length - 1 downto 0) := (others => '0');
+
     -- Result of operations of the ALU. Bigger than output since multiplication 
     -- can go to 2 times the size of the input
-    signal temp_output : result_vector_t;
+    signal temp_output : std_logic_vector(2 * output'length - 1 downto 0);
 
 begin
 
@@ -30,8 +33,8 @@ begin
         or_op(a, b) when "0100",        -- Bitwise or
         xor_op(a, b) when "0101",       -- Bitwise xor
         not_op(a) when "0110",          -- Bitwise not
-        cmp(a) when "0111",             -- Comparison
-        (others => '0') when others;
+        cmp(a) when "0111",             -- Comparation
+        zero_result when others;
 
     flags(FLAG_C) <= '1' when selector = "1000" else
                      '0' when selector = "1100" else

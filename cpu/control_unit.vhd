@@ -157,14 +157,13 @@ architecture RTL of control_unit is
 begin
 
     alu_selector_sig <= instruction_opcode(ALU_SEL_3) & instruction_opcode(ALU_SEL_2) & instruction_opcode(ALU_SEL_1) & instruction_opcode(ALU_SEL_0);
+    instruction_opcode  <= instruction_vector(4 * DATA_SIZE - 1 downto 3 * DATA_SIZE);
+    instruction_a       <= instruction_vector(3 * DATA_SIZE - 1 downto 2 * DATA_SIZE);
+    instruction_b       <= instruction_vector(2 * DATA_SIZE - 1 downto DATA_SIZE);
+    instruction_address <= instruction_vector(DATA_SIZE - 1 downto 0);
 
-    control_unit_process : process(instruction_a, instruction_b, instruction_opcode, instruction_address, instruction_vector, alu_selector_sig) is
+    control_unit_process : process(instruction_a, instruction_b, instruction_opcode, instruction_address, alu_selector_sig) is
     begin
-        instruction_opcode  <= instruction_vector(4 * DATA_SIZE - 1 downto 3 * DATA_SIZE);
-        instruction_a       <= instruction_vector(3 * DATA_SIZE - 1 downto 2 * DATA_SIZE);
-        instruction_b       <= instruction_vector(2 * DATA_SIZE - 1 downto DATA_SIZE);
-        instruction_address <= instruction_vector(DATA_SIZE - 1 downto 0);
-
         update_one_flag <= instruction_opcode(ALU_SEL_3);
 
         alu_selector <= alu_selector_sig;
