@@ -25,14 +25,14 @@ entity ram_memory is
     );
 end entity ram_memory;
 
--- TODO Add address offset (add a 3rd register output...)
 architecture RTL of ram_memory is
     -- Memory that goes from 0 to the max number an address can go
     signal memory         : t_memory_array(0 to 2 ** address'length - 1);
     signal lookup_address : std_logic_vector(DATA_SIZE - 1 downto 0);
+
 begin
---    lookup_address <= address + offset when use_offset = '1' else
---                      address;
+    lookup_address <= std_logic_vector(unsigned(address) + unsigned(offset)) when use_offset = '1' else
+                      address;
 
     write_memory : process(clk, rst) is
     begin
@@ -43,6 +43,6 @@ begin
         end if;
     end process write_memory;
 
-    value_out <= memory(to_integer(unsigned(address)));
+    value_out <= memory(to_integer(unsigned(lookup_address)));
 
 end architecture RTL;
