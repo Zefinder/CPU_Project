@@ -4,11 +4,24 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use utils.cpu_utils.all;
 
+-- Package that contains amazing and useful testing constants and functions!
 package test_utils is
+    -- Constant time type for clock
     constant CLK_PERIOD_TIME : time    := 5 ns;
+    -- Constant time value for clock
     constant CLK_PERIOD      : natural := 5;
 
+    -- Function that prints the error for two vectors with the following format:
+    --
+    -- Error: `'context_message'`, expected 0x`'expected'` but got 0x`'got'`
+    -- 
+    -- **Note** that `'expected'` and `'got'` will be displayed in hexadecimal
     function print_error(context_message : string; expected, got : std_logic_vector) return string;
+    -- Function that prints the error for two bits with the following format:
+    --
+    -- Error: `'context_message'`, expected 0x`'expected'` but got 0x`'got'`
+    -- 
+    -- **Note** that `'expected'` and `'got'` will be displayed in X01 format
     function print_bit_error(context_message : string; expected, got : std_logic) return string;
 end package test_utils;
 
