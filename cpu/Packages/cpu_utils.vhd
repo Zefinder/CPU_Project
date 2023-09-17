@@ -27,7 +27,7 @@ package cpu_utils is
     constant FLAG_N_ADDR : std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0) := "10"; -- Address of Negative flag
     constant FLAG_O_ADDR : std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0) := "11"; -- Address of Overflow flag
 
-    -- ALU opcode bits (still unused bit 6 and 7)
+    -- ALU opcode bits (still unused bit 7)
     -- TODO Bit that inputs the result of the ALU in the memory
 
     constant ALU_SEL_3 : natural := 6;  -- Bit representing the fourth ALU selector bit

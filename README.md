@@ -227,15 +227,15 @@ Bit names have pretty self-explanatory names but it's always good to be sure of 
 Yet another little remark: note that for a same category, if it can use two times a register it won't be necessarily the same! For example the ALU can use 2 registers, it is totally possible to do like `ADD R2 R0 R1`. Same thing for branching: `BCC ~R1` is the same thing as `BCC PC R1` and will branch if carry clear to `PC + R1`.
 
 ### Instruction map
-This map does not contain any information about addressing mode, for this refer to the (not yet written) explanatory pdf of the CPU.
+This map does not contain any information about addressing mode, for this refer to the *addressing mode* section (or the future not yet written pdf).
 |        |  0X   |  1X   |  2X   |  3X   |  4X   |  5X   |  6X   |  7X   |  8X   |  9X   |  AX   |  BX   |    CX     |     DX      |    EX    |     FX      |
 | :----: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :-------: | :---------: | :------: | :---------: |
-| **X0** |  NOP  | NOP\* | NOP\* | NOP\* |  MOV  | MOV\* |  MOV  | MOV\* |  STR  |  STR  | STR\* | STR\* | STRMV\*\* | STOFFMV\*\* | SWAP\*\* | SWAPOFF\*\* |
-| **X1** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | MOV\* | MOV\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STOFFMV\*\* | SWAP\*\* | SWAPOFF\*\* |
+| **X0** |  NOP  | NOP\* | NOP\* | NOP\* |  MOV  | MOV\* |  LDR  |  LDR  |  STR  |  STR  | STR\* | STR\* | STRMV\*\* | STOFFMV\*\* | SWAP\*\* | SWAPOFF\*\* |
+| **X1** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | LDR\* | LDR\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STOFFMV\*\* | SWAP\*\* | SWAPOFF\*\* |
 | **X2** |  BCS  |  BCS  |  BCS  |  BCS  |  BEQ  |  BEQ  |  BEQ  |  BEQ  |  BMI  |  BMI  |  BMI  |  BMI  |    BVS    |     BVS     |   BVS    |     BVS     |
 | **X3** |  BCS  |  BCS  |  BCS  |  BCS  |  BEQ  |  BEQ  |  BEQ  |  BEQ  |  BMI  |  BMI  |  BMI  |  BMI  |    BVS    |     BVS     |   BVS    |     BVS     |
-| **X4** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | MOV\* | MOV\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STOFFMV\*\* | SWAP\*\* | SWAPOFF\*\* |
-| **X5** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | MOV\* | MOV\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STOFFMV\*\* | SWAP\*\* | SWAPOFF\*\* |
+| **X4** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | LDR\* | LDR\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STOFFMV\*\* | SWAP\*\* | SWAPOFF\*\* |
+| **X5** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | LDR\* | LDR\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STOFFMV\*\* | SWAP\*\* | SWAPOFF\*\* |
 | **X6** |  BCC  |  BCC  |  BCC  |  BCC  |  BNE  |  BNE  |  BNE  |  BNE  |  BPL  |  BPL  |  BPL  |  BPL  |    BVC    |     BVC     |   BVC    |     BVC     |
 | **X7** |  BCC  |  BCC  |  BCC  |  BCC  |  BNE  |  BNE  |  BNE  |  BNE  |  BPL  |  BPL  |  BPL  |  BPL  |    BVC    |     BVC     |   BVC    |     BVC     |
 | **X8** |  ADD  |  ADD  |  ADD  |  ADD  |  SEC  | SEC\* | SEC\* | SEC\* | ADD\* | ADD\* | ADD\* | ADD\* |   SEC\*   |    SEC\*    |  SEC\*   |    SEC\*    |
@@ -251,9 +251,29 @@ All opcodes marked with \* are opcodes that are not used with their defined opco
 
 All opcodes marked with \*\* are unofficial opcodes. They are opcodes that uses a combination of existing functionnality to do something that was not meant for because of clock cycles configuration. Most of them must be followed by a NOPs to be working normally. They exist because of the conception of the CPU allows it. 
 
-WHERE `LDR`??? Well some MOV are mistakes for now...
-
 If you think that we are missing of ALU operations, I totally agree! We could at least these few ones `ASL`, `ASR`, `LSL`, `LSR`, `ROR`, `ROL`
+
+### Addressing modes
+
+As this CPU is a really well made CPU (isn't it :D), an operation can have multiple *addressing modes*. What is an addressing mode? It is a different opcode that indicates the CPU that the operation is the same but that the operands don't mean the same thing... This is unclear? Let's make an example!
+
+If we take the instruction `0x0805A501`, this will be interpreted by the CPU as `ADD R0 $05 $A5`. But what if I wanted to say that it was `ADD R0 R5 $A5`? You need another opcode of the same operation. This is the addressing mode! (By the way, the instruction would be `0x1805A501`)
+
+Here is a list of all addressing modes that are available for this instruction set with the targetted operations and an assembly example:
+|    Addressing mode    | Concerned opcodes                           | Example             |
+| :-------------------: | :------------------------------------------ | :------------------ |
+|       Immediate       | SEC, SEZ, SEN, SEV, CLC, CLZ, CLN, CLV, NOP | ADD R0 $05 $05      |
+|       Constant        | ADD, SUB, MUL, AND, OR, XOR, NOT, MOV       | ADD R0 $05 $05      |
+|    First register     | ADD, SUB, MUL, AND, OR, XOR, NOT, CMP, MOV  | AND R0 R1 $00       |
+|    Second register    | ADD, SUB, MUL, AND, OR, XOR                 | MUL R2 $02 R3       |
+|     Both register     | ADD, SUB, MUL, AND, OR, XOR                 | SUB R0 R0 R1        |
+|  Absolute address\*   | BCS, BEQ, BMI, BVS, BCC, BNE, BPL, BVC      | BCS $F0             |
+|  Relative address\*   | BCS, BEQ, BMI, BVS, BCC, BNE, BPL, BVC      | BCS PC ~$F0         |
+|    Absolute memory    | STR, LDR                                    | STR R0 [R1]         |
+|    Relative memory    | STR, LDR                                    | STR R0 [R1, R0]     |
+| Relative shift memory | STR, LDR                                    | STR R0 [R1, R0, #2] |
+
+All addressing modes marked with \* can be either with registers or with values. For example, `BCS PC ~$F0`, `BCS $00 ~$F0`, `BCS PC ~R0`, `BCS PC ~R0` are all possible! 
 
 ## How to create a test and a test set
 
