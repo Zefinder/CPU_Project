@@ -8,7 +8,6 @@
   int yylex (void);
   void yyerror (const char *);
   int correct_shift_offset(int shift);
-  void print_warning(char* message);
 }
 
 %union {
@@ -26,7 +25,7 @@
 %token tTILDE tLBRA tRBRA tCOMMA
 %token tSPACE
 
-%type<name> alu_bioperand_mnemonic alu_nooperand_mnemonic branch_mnemonic
+%type<name> alu_bioperand_mnemonic alu_nooperand_mnemonic branch_mnemonic memory_mnemonic
 
 %start instructions
 
@@ -41,8 +40,8 @@ instructions:
 // Three types of instructions: ALU, branch and storing
 instruction:
     alu_instruction
-  | branch_instruction
-  | tSPACE // Here to allow spaces after an instruction
+  | branch_instruction optional_space
+  | storing_instruction optional_space
   ;
 
 // All ALU instructions
@@ -103,14 +102,38 @@ branch_mnemonic:
   | tBVS {$$="BVS";}
   ;
 
+// All storing instructions
+storing_instruction:
+    tMOV tSPACE tREGISTER tSPACE tREGISTER  {printf("MOV R%d R%d\n", $3, $5);}
+  | tMOV tSPACE tREGISTER tSPACE tNUMBER    {printf("MOV R%d $%d\n", $3, $5);}
+  | memory_mnemonic tSPACE tREGISTER tSPACE tLBRA optional_space
+      tREGISTER optional_space tRBRA        {printf("%s R%d [R%d]\n", $1, $3, $7);}
+  | memory_mnemonic tSPACE tREGISTER tSPACE tLBRA optional_space
+      tREGISTER optional_space tCOMMA optional_space tREGISTER
+      optional_space tRBRA                  {printf("%s R%d [R%d, R%d]\n", $1, $3, $7, $11);}
+  | memory_mnemonic tSPACE tREGISTER tSPACE tLBRA optional_space
+      tREGISTER optional_space tCOMMA optional_space tREGISTER 
+      optional_space tCOMMA optional_space tNUMBER 
+      optional_space tRBRA                  {if (!correct_shift_offset($15)) {
+                                               yyerror("Incorrect offset (must be in [0;3])");
+                                             }
+                                             printf("%s R%d [R%d, R%d, #%d]\n", $1, $3, $7, $11, $15);}
+  ;
+
+memory_mnemonic:
+    tSTR {$$="STR";}
+  | tLDR {$$="LDR";}
+  ;
+
+optional_space:
+    tSPACE
+  | %empty
+  ;
+
 %%
 
 int correct_shift_offset(int shift) {
   return 0 <= shift && shift <= 3;
-}
-
-void print_warning(char* message) {
-  printf("[WARNING]: %s\n", message);
 }
 
 void yyerror(const char *msg) {
