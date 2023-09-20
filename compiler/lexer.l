@@ -1,16 +1,18 @@
-%{
-    #include <stdlib.h>
-    #include <stdio.h>
-    #include "utils.h"
-%}
 %option noyywrap
 %option noinput
 %option nounput
 
+%{
+    #include <stdlib.h>
+    #include <stdio.h>
+    #include "utils.h"
+    #include "parser.tab.h"
+%}
+
 /* Numbers */
-BIN "%"[01]*
-DEC "#"[0-9]*
-HEX "$"[0-9a-fA-F]*
+BIN "%"[01]+
+DEC "#"[0-9]+
+HEX "$"[0-9a-fA-F]+
 
 /* ALU (16 operations) */
 ADD (?i:add)
@@ -49,9 +51,9 @@ LDR (?i:ldr)
 NOP (?i:nop)
 
 /* Registers */
+REG [rR][0-9]+
 PC  (?i:pc)
 LR  (?i:lr)
-REG [rR][0-9]*
 
 /* Space */
 SPACE [ \t]
@@ -59,32 +61,48 @@ NON_SPACE [\r\n\f]
 
 %%
 
-{ADD}       {printf("ADD \n");}
+{ADD}       {return tADD;}
+{SUB}       {return tSUB;}
+{MUL}       {return tMUL;}
+{AND}       {return tAND;}
+{OR}        {return tOR;}
+{XOR}       {return tXOR;}
+{NOT}       {return tNOT;}
+{CMP}       {return tCMP;}
+{SEC}       {return tSEC;}
+{SEZ}       {return tSEZ;}
+{SEN}       {return tSEN;}
+{SEV}       {return tSEV;}
+{CLC}       {return tCLC;}
+{CLZ}       {return tCLZ;}
+{CLN}       {return tCLN;}
+{CLV}       {return tCLV;}
 
-{BIN}       {printf("Binary number found: %s\n", btoi(yytext));}
-{DEC}       {printf("Decimal number found: %s\n", itoi(yytext));}
-{HEX}       {printf("Hexadecimal number found: %s\n", htoi(yytext));}
+{BCC}       {return tBCC;}
+{BCS}       {return tBCS;}
+{BNE}       {return tBNE;}
+{BEQ}       {return tBEQ;}
+{BPL}       {return tBPL;}
+{BMI}       {return tBMI;}
+{BVC}       {return tBVC;}
+{BVS}       {return tBVS;}
 
-{REG}       {printf("Register found: %s\n", yytext);}
-{PC}        {printf("PC register found\n");}
-{LR}        {printf("LR register found\n");}
+{MOV}       {return tMOV;}
+{STR}       {return tSTR;}
+{LDR}       {return tLDR;}
 
-{SPACE}     {}
-{NON_SPACE} {printf("\n");}
+{NOP}       {return tNOP;}
 
-<<EOF>> {yyterminate();}
+{BIN}       {yylval.number=btoi(yytext); return tNUMBER;}
+{DEC}       {yylval.number=itoi(yytext); return tNUMBER;}
+{HEX}       {yylval.number=htoi(yytext); return tNUMBER;}
+
+{REG}       {yylval.number=itoi(yytext); return tREGISTER;}
+{PC}        {yylval.number=15; return tREGISTER;}
+{LR}        {yylval.number=14; return tREGISTER;}
+
+{SPACE}+    {return tSPACE;}
+{NON_SPACE} ;
+";".* ;
 
 %% 
-
-int main(int argc, char** argv) {
-    if (argc == 1) {
-        printf("No file to read\n");
-        exit(1);
-    }
-
-    FILE* file;
-    file = fopen(argv[1], "r");
-    yyin = file;
-    yylex();
-    fclose(file);
-}

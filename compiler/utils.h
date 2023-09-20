@@ -1,8 +1,8 @@
 #ifndef UTILS
 #define UTILS
 
-char* btoi(char* binary_string);
-char* itoi(char* integer_string);
-char* htoi(char* hex_string);
+int btoi(char* binary_string);
+int itoi(char* integer_string);
+int htoi(char* hex_string);
 
 #endif

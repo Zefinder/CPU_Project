@@ -4,8 +4,7 @@
 #include <string.h>
 #include "utils.h"
 
-char* btoi(char* binary_string){
-    char* result;
+int btoi(char* binary_string){
     int binaryval = 0;
     int index = strlen(binary_string) - 1;
     int power = 0;
@@ -19,16 +18,14 @@ char* btoi(char* binary_string){
         power += 1;
     }
 
-    sprintf(result, "%d", binaryval);
-    return result;
+    return binaryval;
 }
 
-char* itoi(char* integer_string) {
-    // strncpy(destination_string,input_string+pos,len);
-    char* result;
+int itoi(char* integer_string) {
+    char* result = (char*) malloc(sizeof(strlen(integer_string) - 1));
     strncpy(result, integer_string + 1, strlen(integer_string) - 1);
 
-    return result;
+    return atoi(result);
 }
 
 int hexchartoi(char c) {
@@ -58,8 +55,7 @@ int hexchartoi(char c) {
     return 0;
 }
 
-char* htoi(char* hex_string) {
-    char* result;
+int htoi(char* hex_string) {
     int hexval = 0;
     int index = strlen(hex_string) - 1;
     int power = 0;
@@ -72,7 +68,6 @@ char* htoi(char* hex_string) {
         index -= 1;
         power += 1;
     }
-
-    sprintf(result, "%d", hexval);
-    return result;
+    
+    return hexval;
 }
