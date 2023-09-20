@@ -43,6 +43,7 @@ instruction:
     alu_instruction
   | branch_instruction optional_space
   | storing_instruction optional_space
+  | tNOP optional_space
   ;
 
 // All ALU instructions
