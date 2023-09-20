@@ -326,8 +326,20 @@ To add tests, please refer to the previous subsubsection.
 ## How can I code with this ASM
 Do you have problems? You should go to the doctor because it's scary... There is a `assembly_udl.xml` file which is a language file for **Notepad++**. You just have to import it and you will have syntax coloring. Don't expect more for now... (Joking, I'll probably do something for vscode)
 
+## How can I compile the ASM?
+A good question! I am currently doing a compiler with flex/yacc to parse and compile at the same time. If you want to see how it works, look in the `compiler` folder, there is everything I used to make the lexical analysis (flex), the grammar (yacc) and the compilation (bison).
+
+**Note** that there will be more than one version and I am still developping the first one... Here is what will be expected:
+| Version number | Content                                                                                      |
+| :------------: | :------------------------------------------------------------------------------------------- |
+|       1        | Lexical analysis, grammatical analysis, parsing all official instructions, compilation (WIP) |
+|       2        | Label analysis, label symbol table, jump on label                                            |
+|       3        | Unofficial opcode support (Will probably never happen :D)                                    |
+
+*I should maybe make a tutorial repo for flex/yacc...*
+
 ## How can I run what I coded?
-I didn't have finished yet the CPU and I haven't started a compiler yet. And you want me to run compiled code? When the CPU will be finished (or when I will want to make a small break), I will make an interpreter and then a compiler (lex/yacc since it's not a hard language). But for now nothing is planned...
+I didn't have finished yet the CPU and I haven't started a compiler yet. And you want me to run compiled code? When the CPU will be finished (or when I will want to make a small break), I will make an interpreter one day. But for now nothing is planned...
 
 ## Why a CPU?
 Why not?
