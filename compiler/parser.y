@@ -2,6 +2,7 @@
   #include <stdio.h>
   #include <stdlib.h>
   #include <string.h>
+  #include "compile.h"
 %}
 
 %code provides {
@@ -141,6 +142,17 @@ void yyerror(const char *msg) {
   exit(1);
 }
 
-int main(void) {
+int main(int argc, char** argv) {
+  if (argc != 2) {
+    yyerror("Wrong number of arguments!");
+  }
+
+  // Opening binary file
+  openfile(argv[1]);
+
+  // Parsing
   yyparse();
+
+  // Closing file
+  closefile();
 }

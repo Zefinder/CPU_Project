@@ -231,7 +231,7 @@ This map does not contain any information about addressing mode, for this refer 
 |        |  0X   |  1X   |  2X   |  3X   |  4X   |  5X   |  6X   |  7X   |  8X   |  9X   |  AX   |  BX   |    CX     |     DX      |    EX    |     FX      |
 | :----: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :-------: | :---------: | :------: | :---------: |
 | **X0** |  NOP  | NOP\* | NOP\* | NOP\* |  MOV  | MOV\* |  LDR  |  LDR  |  STR  |  STR  | STR\* | STR\* | STRMV\*\* | STOFFMV\*\* | SWAP\*\* | SWAPOFF\*\* |
-| **X1** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | LDR\* | LDR\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STOFFMV\*\* | SWAP\*\* | SWAPOFF\*\* |
+| **X1** | NOP\* | NOP\* | NOP\* | NOP\* |  MOV  | MOV\* | LDR\* | LDR\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STOFFMV\*\* | SWAP\*\* | SWAPOFF\*\* |
 | **X2** |  BCS  |  BCS  |  BCS  |  BCS  |  BEQ  |  BEQ  |  BEQ  |  BEQ  |  BMI  |  BMI  |  BMI  |  BMI  |    BVS    |     BVS     |   BVS    |     BVS     |
 | **X3** |  BCS  |  BCS  |  BCS  |  BCS  |  BEQ  |  BEQ  |  BEQ  |  BEQ  |  BMI  |  BMI  |  BMI  |  BMI  |    BVS    |     BVS     |   BVS    |     BVS     |
 | **X4** | NOP\* | NOP\* | NOP\* | NOP\* | MOV\* | MOV\* | LDR\* | LDR\* | STR\* | STR\* | STR\* | STR\* | STRMV\*\* | STOFFMV\*\* | SWAP\*\* | SWAPOFF\*\* |
@@ -262,7 +262,7 @@ If we take the instruction `0x0805A501`, this will be interpreted by the CPU as 
 Here is a list of all addressing modes that are available for this instruction set with the targetted operations and an assembly example:
 |    Addressing mode    | Concerned opcodes                           | Example             |
 | :-------------------: | :------------------------------------------ | :------------------ |
-|       Immediate       | SEC, SEZ, SEN, SEV, CLC, CLZ, CLN, CLV, NOP | ADD R0 $05 $05      |
+|       Immediate       | SEC, SEZ, SEN, SEV, CLC, CLZ, CLN, CLV, NOP | SEC                 |
 |       Constant        | ADD, SUB, MUL, AND, OR, XOR, NOT, MOV       | ADD R0 $05 $05      |
 |    First register     | ADD, SUB, MUL, AND, OR, XOR, NOT, CMP, MOV  | AND R0 R1 $00       |
 |    Second register    | ADD, SUB, MUL, AND, OR, XOR                 | MUL R2 $02 R3       |
@@ -270,6 +270,8 @@ Here is a list of all addressing modes that are available for this instruction s
 |  Absolute address\*   | BCS, BEQ, BMI, BVS, BCC, BNE, BPL, BVC      | BCS $F0             |
 |   Relative offset\*   | BCS, BEQ, BMI, BVS, BCC, BNE, BPL, BVC      | BCS ~$F0            |
 |  Relative address\*   | BCS, BEQ, BMI, BVS, BCC, BNE, BPL, BVC      | BCS PC ~$F0         |
+|    Direct constant    | MOV                                         | MOV R0 #10          |
+|    Direct register    | MOV                                         | MOV R0 R1           |
 |    Absolute memory    | STR, LDR                                    | STR R0 [R1]         |
 |    Relative memory    | STR, LDR                                    | STR R0 [R1, R0]     |
 | Relative shift memory | STR, LDR                                    | STR R0 [R1, R0, #2] |
