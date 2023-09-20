@@ -101,6 +101,11 @@ NON_SPACE [\r\n\f]
 {PC}        {yylval.number=15; return tREGISTER;}
 {LR}        {yylval.number=14; return tREGISTER;}
 
+"~"         {return tTILDE;}
+"["         {return tLBRA;}
+"]"         {return tRBRA;}
+","         {return tCOMMA;}
+
 {SPACE}+    {return tSPACE;}
 {NON_SPACE} ;
 ";".* ;
