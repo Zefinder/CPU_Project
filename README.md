@@ -249,7 +249,7 @@ This map does not contain any information about addressing mode, for this refer 
 
 All opcodes marked with \* are opcodes that are not used with their defined opcode (they are here since there are unused bits).
 
-All opcodes marked with \*\* are unofficial opcodes. They are opcodes that uses a combination of existing functionnality to do something that was not meant for because of clock cycles configuration. Most of them must be followed by a NOPs to be working normally. They exist because of the conception of the CPU allows it. 
+All opcodes marked with \*\* are unofficial opcodes. They are opcodes that uses a combination of existing functionnality to do something that was not meant for because of clock cycles configuration. Most of them must be followed by a `NOP`s to be working normally. They exist because of the conception of the CPU allows it. 
 
 If you think that we are missing of ALU operations, I totally agree! We could at least these few ones `ASL`, `ASR`, `LSL`, `LSR`, `ROR`, `ROL`
 
@@ -257,7 +257,7 @@ If you think that we are missing of ALU operations, I totally agree! We could at
 
 As this CPU is a really well made CPU (isn't it :D), an operation can have multiple *addressing modes*. What is an addressing mode? It is a different opcode that indicates the CPU that the operation is the same but that the operands don't mean the same thing... This is unclear? Let's make an example!
 
-If we take the instruction `0x0805A501`, this will be interpreted by the CPU as `ADD R0 $05 $A5`. But what if I wanted to say that it was `ADD R0 R5 $A5`? You need another opcode of the same operation. This is the addressing mode! (By the way, the instruction would be `0x1805A501`)
+If we take the instruction `0x0805A501`, this will be interpreted by the CPU as `ADD R0 $05 $A5`. But what if I wanted to say that it was `ADD R0 R5 $A5`? You need another opcode of the same operation. It's the addressing mode! (By the way, the instruction would be `0x1805A501`)
 
 Here is a list of all addressing modes that are available for this instruction set with the targetted operations and an assembly example:
 |    Addressing mode    | Concerned opcodes                           | Example             |
@@ -268,6 +268,7 @@ Here is a list of all addressing modes that are available for this instruction s
 |    Second register    | ADD, SUB, MUL, AND, OR, XOR                 | MUL R2 $02 R3       |
 |     Both register     | ADD, SUB, MUL, AND, OR, XOR                 | SUB R0 R0 R1        |
 |  Absolute address\*   | BCS, BEQ, BMI, BVS, BCC, BNE, BPL, BVC      | BCS $F0             |
+|   Relative offset\*   | BCS, BEQ, BMI, BVS, BCC, BNE, BPL, BVC      | BCS ~$F0            |
 |  Relative address\*   | BCS, BEQ, BMI, BVS, BCC, BNE, BPL, BVC      | BCS PC ~$F0         |
 |    Absolute memory    | STR, LDR                                    | STR R0 [R1]         |
 |    Relative memory    | STR, LDR                                    | STR R0 [R1, R0]     |
@@ -291,7 +292,7 @@ The CPU has one output designed for testing. This output is the output of the AL
 
 For instance:
 
-- Content of test assembly `alu_set_1` (to compile)
+- Content of test assembly `alu_set_1.s` (not yet compiled, after compilation: `alu_set_1`)
 ```assembly
 ; Simple addition
 MOV R0 $A0
@@ -299,7 +300,7 @@ ADD R1 R0 $0A
 CMP R1 ; Outputs the value of R1
 ```
 
-- Content of the *.txt* `alu_set_1.txt` (TODO to test)
+- Content of the *.txt* `alu_set_1.txt`
 ```
 AA
 ```
@@ -321,13 +322,15 @@ variable new_set  : test_set := (new string'(NEW_SET_NAME), NEW_SET_TEST_COUNT);
 variable test_files_array : test_files_array_t(0 to x) := (..., new_set); -- x is the number - 1 in the array 
 ```
 
-To add tests, please refer to the previous subsubsection.
+To add tests, please refer to the previous subsubsection. I will try to make a txt file in the future so the vhdl test file remains untouched!
 
 ## How can I code with this ASM
-Do you have problems? You should go to the doctor because it's scary... There is a `assembly_udl.xml` file which is a language file for **Notepad++**. You just have to import it and you will have syntax coloring. Don't expect more for now... (Joking, I'll probably do something for vscode)
+Do you have problems? You should go to the doctor because it's scary... There is a `assembly_udl.xml` file which is a language file for **Notepad++**. You just have to import it and you will have syntax coloring. Don't expect more for now... (Joking, I'll probably do something for vscode (hi hi hi no))
 
 ## How can I compile the ASM?
-A good question! I am currently doing a compiler with flex/yacc to parse and compile at the same time. If you want to see how it works, look in the `compiler` folder, there is everything I used to make the lexical analysis (flex), the grammar (yacc) and the compilation (bison).
+A good question! I am currently doing a compiler with flex/yacc to parse and compile at the same time. If you want to see how it works, look in the `compiler` folder, there is everything I used to make the lexical analysis (flex), the grammar (yacc) and the compilation (bison). 
+
+**THIS IS FOR LINUX ONLY I AM AFRAID...**
 
 **Note** that there will be more than one version and I am still developping the first one... Here is what will be expected:
 | Version number | Content                                                                                      |
