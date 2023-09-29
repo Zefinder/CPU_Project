@@ -6,6 +6,7 @@
 #define BOTH_REGISTER_MASK 0x30
 
 #define REGISTER_BRANCH_ADDRESS_MASK 0x10
+// Constant offset mask useless, to change...
 #define USE_CONSTANT_OFFSET_MASK 0x01
 #define USE_REGISTER_OFFSET_MASK 0x21
 
@@ -45,6 +46,9 @@
 #define LDR 0x60
 
 #define NOP 0x00
+
+#define LR 0x0E
+#define PC 0x0F
 
 void openfile(char* filename); 
 void closefile();
