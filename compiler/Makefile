@@ -1,3 +1,8 @@
+.PHONY: test
+
+test: clean all
+	cat test.s | ./parser test
+
 all: utils.o compile.o lex.yy.c parser.tab.c parser.tab.h
 	gcc -o parser parser.tab.c lex.yy.c utils.o compile.o -lm
 
@@ -13,8 +18,5 @@ parser.tab.c parser.tab.h: parser.y
 lex.yy.c: lexer.l parser.tab.h
 	flex lexer.l
 
-test: all
-	cat test.s | ./parser test
-
 clean:
-	rm *.o *.out *.yy.c *.tab.* *.output parser
+	rm -f *.o *.out *.yy.c *.tab.* *.output parser test

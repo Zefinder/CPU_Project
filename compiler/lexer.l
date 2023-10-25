@@ -57,7 +57,7 @@ LR  (?i:lr)
 
 /* Space */
 SPACE [ \t]
-NON_SPACE [\r\n\f]
+LINE_RETURN [\r\n\f]
 
 %%
 
@@ -107,7 +107,7 @@ NON_SPACE [\r\n\f]
 ","         {return tCOMMA;}
 
 {SPACE}+    {return tSPACE;}
-{NON_SPACE} ;
+{LINE_RETURN} {return tRETURN;}
 ";".* ;
 
 %% 

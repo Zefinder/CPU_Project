@@ -29,16 +29,17 @@ These tests ideally will be in assembly and compiled language (so it means that 
 
 The further developpement I can see is to find an FPGA where you can plug a mass memory to store programs on and configure the FPGA to start on a specific address of the memory to run a specific program. This configuration will load the program into the CPU instruction memory and then launch it. It will make the CPU easier to use (not modifying the constant array each time! Efficiency go brrr). Hence the few other components I see to add:
 
-- Instruction memory 	(#)
-- Instruction loader 	(#)
-- Program chooser		(#)
+- 16 bits or 32 bits registers !    (#)
+- Interruption table                (#)
+- Instruction memory             	(#)
+- Instruction loader            	(#)
+- Program chooser		            (#)
 
 Maybe that only a CPU is a little sad, like you have the process unit ok but you don't have anything to interract with it. You will get the same result again and again... It's perfect for tests I agree, but still if we could add a little more things... 
 
 - Change the RAM memory and instruction memory to a bus (16 bits?)		(#)
 - Bus mapper															(#)
 - Increase the RAM														(#) 
-- Make all registers not the same size (like the PC would be 16 bits)	(#)
 
 Yes this is perfect, so now you can map things to a bus, and so interract with them! You would be able to event connect a screen and create a little game (Possible with a 16 byte of RAM, look how much RAM they used for Super Mario Bros ha ha)? I guess that everything would be possible with a bus, the used would need to make the mapping and not me! And I leave them the creation of a PPU or a GPU :)
 
@@ -253,6 +254,8 @@ All opcodes marked with \*\* are unofficial opcodes. They are opcodes that uses 
 
 If you think that we are missing of ALU operations, I totally agree! We could at least these few ones `ASL`, `ASR`, `LSL`, `LSR`, `ROR`, `ROL`
 
+There will be a STR and LDR with shift but this is WIP, I still need to process how I'll do that... 
+
 ### Addressing modes
 
 As this CPU is a really well made CPU (isn't it :D), an operation can have multiple *addressing modes*. What is an addressing mode? It is a different opcode that indicates the CPU that the operation is the same but that the operands don't mean the same thing... This is unclear? Let's make an example!
@@ -342,6 +345,8 @@ A good question! I am currently doing a compiler with flex/yacc to parse and com
 |       3        | Unofficial opcode support (Will probably never happen :D)                                    |
 
 *I should maybe make a tutorial repo for flex/yacc...*
+
+I still need to make tests for the compilation but it should be ok I think...
 
 ## How can I run what I coded?
 I didn't have finished yet the CPU and I haven't started a compiler yet. And you want me to run compiled code? When the CPU will be finished (or when I will want to make a small break), I will make an interpreter one day. But for now nothing is planned...

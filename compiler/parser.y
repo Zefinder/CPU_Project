@@ -9,6 +9,8 @@
   int yylex (void);
   void yyerror (const char *);
   int correct_shift_offset(int shift);
+  void next_line();
+  int get_line();
 }
 
 %union {
@@ -25,10 +27,9 @@
 %token tNOP
 %token<number> tNUMBER tREGISTER
 %token tTILDE tLBRA tRBRA tCOMMA
-%token tSPACE
+%token tSPACE tRETURN
 
-%type<opcode> alu_bioperand_mnemonic alu_nooperand_mnemonic branch_mnemonic
-%type<name> memory_mnemonic
+%type<opcode> alu_bioperand_mnemonic alu_nooperand_mnemonic branch_mnemonic memory_mnemonic
 
 %start instructions
 
@@ -36,28 +37,28 @@
 
 // Rightmost derivation
 instructions:
-    instruction instructions
-  | instruction
+    instruction line_return {next_line();} instructions
+  | instruction optionals
   ;
 
 // Three types of instructions: ALU, branch and storing
 instruction:
     alu_instruction
-  | branch_instruction optional_space
-  | storing_instruction optional_space
-  | tNOP optional_space {writeinstruction(NOP, 0, 0, 0);}
+  | branch_instruction
+  | storing_instruction 
+  | tNOP                {writeinstruction(NOP, 0, 0, 0);}
   ;
 
 // All ALU instructions
 alu_instruction:
-    alu_bioperand_mnemonic tSPACE tREGISTER tSPACE tREGISTER tSPACE tREGISTER {writeinstruction($1 | BOTH_REGISTER_MASK, $5, $7, $3);}
-  | alu_bioperand_mnemonic tSPACE tREGISTER tSPACE tNUMBER tSPACE tREGISTER   {writeinstruction($1 | SECOND_REGISTER_MASK, $5, $7, $3);}
-  | alu_bioperand_mnemonic tSPACE tREGISTER tSPACE tREGISTER tSPACE tNUMBER   {writeinstruction($1 | FIRST_REGISTER_MASK, $5, $7, $3);}
-  | alu_bioperand_mnemonic tSPACE tREGISTER tSPACE tNUMBER tSPACE tNUMBER     {writeinstruction($1, $5, $7, $3);}
-  | tNOT tSPACE tREGISTER tSPACE tREGISTER                                    {writeinstruction(NOT | FIRST_REGISTER_MASK, $5, 0, $3);}
-  | tNOT tSPACE tREGISTER tSPACE tNUMBER                                      {writeinstruction(NOT, $5, 0, $3);}
-  | tCMP tSPACE tREGISTER                                                     {writeinstruction(CMP | FIRST_REGISTER_MASK, $3, 0, 0);}
-  | alu_nooperand_mnemonic                                                    {writeinstruction($1, 0, 0, 0);}
+    alu_bioperand_mnemonic space tREGISTER comma tREGISTER comma tREGISTER {writeinstruction($1 | BOTH_REGISTER_MASK, $5, $7, $3);}
+  | alu_bioperand_mnemonic space tREGISTER comma tNUMBER comma tREGISTER   {writeinstruction($1 | SECOND_REGISTER_MASK, $5, $7, $3);}
+  | alu_bioperand_mnemonic space tREGISTER comma tREGISTER comma tNUMBER   {writeinstruction($1 | FIRST_REGISTER_MASK, $5, $7, $3);}
+  | alu_bioperand_mnemonic space tREGISTER comma tNUMBER comma tNUMBER     {writeinstruction($1, $5, $7, $3);}
+  | tNOT space tREGISTER comma tREGISTER                                   {writeinstruction(NOT | FIRST_REGISTER_MASK, $5, 0, $3);}
+  | tNOT space tREGISTER comma tNUMBER                                     {writeinstruction(NOT, $5, 0, $3);}
+  | tCMP space tREGISTER                                                   {writeinstruction(CMP | FIRST_REGISTER_MASK, $3, 0, 0);}
+  | alu_nooperand_mnemonic                                                 {writeinstruction($1, 0, 0, 0);}
   ;
 
 // Instruction mnemonics with 2 operands for ALU
@@ -84,14 +85,14 @@ alu_nooperand_mnemonic:
 
 // All branching instructions
 branch_instruction:
-    branch_mnemonic tSPACE tREGISTER                          {writeinstruction($1 | REGISTER_BRANCH_ADDRESS_MASK, $3, 0, 0);}
-  | branch_mnemonic tSPACE tNUMBER                            {writeinstruction($1, $3, 0, 0);}
-  | branch_mnemonic tSPACE tTILDE tREGISTER                   {writeinstruction($1 | REGISTER_BRANCH_ADDRESS_MASK | USE_REGISTER_OFFSET_MASK, PC, $4, 0);}
-  | branch_mnemonic tSPACE tTILDE tNUMBER                     {writeinstruction($1 | REGISTER_BRANCH_ADDRESS_MASK | USE_CONSTANT_OFFSET_MASK, PC, $4, 0);}
-  | branch_mnemonic tSPACE tREGISTER tSPACE tTILDE tREGISTER  {writeinstruction($1 | REGISTER_BRANCH_ADDRESS_MASK | USE_REGISTER_OFFSET_MASK, $3, $6, 0);}
-  | branch_mnemonic tSPACE tNUMBER tSPACE tTILDE tREGISTER    {writeinstruction($1 | USE_REGISTER_OFFSET_MASK, $3, $6, 0);}
-  | branch_mnemonic tSPACE tREGISTER tSPACE tTILDE tNUMBER    {writeinstruction($1 | REGISTER_BRANCH_ADDRESS_MASK | USE_CONSTANT_OFFSET_MASK, $3, $6, 0);}
-  | branch_mnemonic tSPACE tNUMBER tSPACE tTILDE tNUMBER      {writeinstruction($1 | USE_CONSTANT_OFFSET_MASK, $3, $6, 0);}
+    branch_mnemonic space tREGISTER                          {writeinstruction($1 | REGISTER_BRANCH_ADDRESS_MASK, $3, 0, 0);}
+  | branch_mnemonic space tNUMBER                            {writeinstruction($1, $3, 0, 0);}
+  | branch_mnemonic space tTILDE tREGISTER                   {writeinstruction($1 | REGISTER_BRANCH_ADDRESS_MASK | USE_REGISTER_OFFSET_MASK, PC, $4, 0);}
+  | branch_mnemonic space tTILDE tNUMBER                     {writeinstruction($1 | REGISTER_BRANCH_ADDRESS_MASK | USE_CONSTANT_OFFSET_MASK, PC, $4, 0);}
+  | branch_mnemonic space tREGISTER comma tTILDE tREGISTER   {writeinstruction($1 | REGISTER_BRANCH_ADDRESS_MASK | USE_REGISTER_OFFSET_MASK, $3, $6, 0);}
+  | branch_mnemonic space tNUMBER comma tTILDE tREGISTER     {writeinstruction($1 | USE_REGISTER_OFFSET_MASK, $3, $6, 0);}
+  | branch_mnemonic space tREGISTER comma tTILDE tNUMBER     {writeinstruction($1 | REGISTER_BRANCH_ADDRESS_MASK | USE_CONSTANT_OFFSET_MASK, $3, $6, 0);}
+  | branch_mnemonic space tNUMBER comma tTILDE tNUMBER       {writeinstruction($1 | USE_CONSTANT_OFFSET_MASK, $3, $6, 0);}
   ;
 
 // Instruction mnemonics for branching
@@ -108,41 +109,75 @@ branch_mnemonic:
 
 // All storing instructions
 storing_instruction:
-    tMOV tSPACE tREGISTER tSPACE tREGISTER  {printf("MOV R%d R%d\n", $3, $5);}
-  | tMOV tSPACE tREGISTER tSPACE tNUMBER    {printf("MOV R%d $%d\n", $3, $5);}
-  | memory_mnemonic tSPACE tREGISTER tSPACE tLBRA optional_space
-      tREGISTER optional_space tRBRA        {printf("%s R%d [R%d]\n", $1, $3, $7);}
-  | memory_mnemonic tSPACE tREGISTER tSPACE tLBRA optional_space
-      tREGISTER optional_space tCOMMA optional_space tREGISTER
-      optional_space tRBRA                  {printf("%s R%d [R%d, R%d]\n", $1, $3, $7, $11);}
-  | memory_mnemonic tSPACE tREGISTER tSPACE tLBRA optional_space
-      tREGISTER optional_space tCOMMA optional_space tREGISTER 
-      optional_space tCOMMA optional_space tNUMBER 
-      optional_space tRBRA                  {if (!correct_shift_offset($15)) {
-                                               yyerror("Incorrect offset (must be in [0;3])");
-                                             }
-                                             printf("%s R%d [R%d, R%d, #%d]\n", $1, $3, $7, $11, $15);}
+    tMOV space tREGISTER comma tREGISTER                                        {writeinstruction(MOV | DIRECT_REGISTER_MASK, $5, 0, $3);}
+  | tMOV space tREGISTER comma tNUMBER                                          {writeinstruction(MOV, $5, 0, $3);}
+  | memory_mnemonic space tREGISTER comma tLBRA tREGISTER tRBRA                 {writeinstruction($1, $6, 0, $3);}
+  | memory_mnemonic space tREGISTER comma tLBRA tREGISTER comma tREGISTER tRBRA {writeinstruction($1 | MEMORY_OFFSET_MASK, $6, $8, $3);}
+  /* | memory_mnemonic space tREGISTER comma tLBRA tREGISTER comma tREGISTER        WIP !
+      comma tNUMBER tRBRA                 {if (!correct_shift_offset($10)) {
+                                             yyerror("Incorrect offset (must be in [0;3])");
+                                           }
+                                           printf("%s R%d [R%d, R%d, #%d]\n", $1, $3, $6, $8, $10);}*/
   ;
 
+// Instruction mnemonics for memory
 memory_mnemonic:
-    tSTR {$$="STR";}
-  | tLDR {$$="LDR";}
+    tSTR {$$=STR;}
+  | tLDR {$$=LDR;}
   ;
 
+// [ \t]+
+space:
+    tSPACE optional_space
+  ;
+
+// [ \t]*
 optional_space:
-    tSPACE
+    tSPACE optional_space
+  | %empty
+  ;
+
+// ,[ \t]*
+comma:
+  tCOMMA optional_space
+  ;
+
+// [\n\r\f][ \t]*
+line_return:
+  tRETURN optional_return
+  ;
+
+optional_return:
+    tRETURN optional_return
+  | %empty
+  ;
+
+// [ \t\n\r\f]*
+optionals:
+  tSPACE optionals
+  | tRETURN optionals
   | %empty
   ;
 
 %%
+
+int line_number = 1;
 
 int correct_shift_offset(int shift) {
   return 0 <= shift && shift <= 3;
 }
 
 void yyerror(const char *msg) {
-  fprintf(stderr, "[ERROR]: %s\n", msg);
+  fprintf(stderr, "[ERROR]: %s at line %d\n", msg, get_line());
   exit(1);
+}
+
+void next_line() {
+  line_number++;
+}
+
+int get_line() {
+  return line_number;
 }
 
 int main(int argc, char** argv) {
