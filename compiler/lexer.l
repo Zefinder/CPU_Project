@@ -5,6 +5,7 @@
 %{
     #include <stdlib.h>
     #include <stdio.h>
+    #include <string.h>
     #include "utils.h"
     #include "parser.tab.h"
 %}
@@ -59,6 +60,10 @@ LR  (?i:lr)
 SPACE [ \t]
 LINE_RETURN [\r\n\f]
 
+/* Symbols */
+CONSTANT [a-zA-Z][a-zA-Z0-9]*
+LABEL "."{CONSTANT}
+
 %%
 
 {ADD}       {return tADD;}
@@ -101,13 +106,34 @@ LINE_RETURN [\r\n\f]
 {PC}        {yylval.number=15; return tREGISTER;}
 {LR}        {yylval.number=14; return tREGISTER;}
 
+{SPACE}+        {return tSPACE;}
+{LINE_RETURN}   {return tRETURN;}
+
+{LABEL}     {yylval.name = parse_label_name(yytext); return tLABEL;}
+{CONSTANT}  {yylval.name = strdup(yytext); return tCONSTANT;}
+
+"+"         {return tOADD;}
+"-"         {return tOSUB;}
+"*"         {return tOMUL;}
+"/"         {return tODIV;}
+"&"         {return tOAND;}
+"^"         {return tOXOR;}
+"|"         {return tOOR;}
+"<<"        {return tOLSHIFT;}
+">>"        {return tORSHIFT;}
+"<"         {return tOLOW;}
+">"         {return tOHIGH;}
+"!"         {return tOVHIGH;}
 "~"         {return tTILDE;}
+
+"("         {return tLPAR;}
+")"         {return tRPAR;}
 "["         {return tLBRA;}
 "]"         {return tRBRA;}
 ","         {return tCOMMA;}
+":"         {return tCOLUMN;}
+"="         {return tEQUALS;}
 
-{SPACE}+    {return tSPACE;}
-{LINE_RETURN} {return tRETURN;}
 ";".* ;
 
 %% 

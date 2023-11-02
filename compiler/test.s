@@ -1,7 +1,14 @@
+test=$123456
+testConstant = $40
 ADD R0, R10, R1
 SUB R0, R0, PC
-MUL R2, R1, #16
-AND R3, #32, R2
+.test:
+test2 = testConstant+.test
+test3=<test
+test4=>test
+test5=!test
+MUL R2, R1, test3
+AND R3, testConstant, R2
 OR R0, $4A, %00011100
 XOR R3, R4, R5
 NOT R0, $5C

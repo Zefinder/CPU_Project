@@ -2,7 +2,24 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <stdarg.h>
 #include "utils.h"
+
+void error_message(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    printf("\e[31m[ERROR]\e[0m: ");
+    vprintf(format, args); 
+    va_end(args);
+}
+
+void warning_message(const char* format, ...) {
+    va_list args;
+    va_start(args, format);
+    printf("\e[33m[WARNING]\e[0m: ");
+    vprintf(format, args); 
+    va_end(args);
+}
 
 int btoi(char* binary_string){
     int binaryval = 0;
@@ -22,8 +39,9 @@ int btoi(char* binary_string){
 }
 
 int itoi(char* integer_string) {
-    char* result = (char*) malloc(sizeof(strlen(integer_string) - 1));
-    strncpy(result, integer_string + 1, strlen(integer_string) - 1);
+    int result_size = strlen(integer_string) - 1;
+    char* result = malloc(sizeof(char) * result_size);
+    strncpy(result, integer_string + 1, result_size);
 
     return atoi(result);
 }
@@ -70,4 +88,23 @@ int htoi(char* hex_string) {
     }
     
     return hexval;
+}
+
+char* parse_label_name(char* label) {
+    int label_size = strlen(label);
+    char* parsed_label = malloc(sizeof(char) * label_size);
+    strncpy(parsed_label, label, label_size);
+
+    return parsed_label;
+}
+
+// Parsing mode
+int mode;
+
+void set_mode(int new_mode) {
+    mode = new_mode;
+}
+
+int get_mode() {
+    return mode;
 }
