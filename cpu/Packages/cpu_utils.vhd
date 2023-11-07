@@ -6,10 +6,12 @@ use ieee.numeric_std.all;
 -- is very useful to avoid duplication between either multiple design
 -- units either between a design unit and its test bench.
 package cpu_utils is
+    constant BYTE_SIZE : natural := 8;  -- Size of a byte
+
     constant INSTRUCTION_SIZE       : natural := 32; -- Size of an instruction
-    constant DATA_SIZE              : natural := 8; -- Size of an data (data includes register size, operand size, addresses size)
+    constant DATA_SIZE              : natural := 16; -- Size of an data (data includes register size, operand size, addresses size)
     constant ALU_SELECTOR_SIZE      : natural := 4; -- Size of the ALU selector
-    constant REGISTER_SELECTOR_SIZE : natural := 4; -- Size of the register selector
+    constant REGISTER_SELECTOR_SIZE : natural := 4; -- Size of the register selector 
     constant FLAG_SELECTOR_SIZE     : natural := 2; -- Size of the flag selector
 
     constant REG_LR : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0) := "1110"; -- Register address of LR

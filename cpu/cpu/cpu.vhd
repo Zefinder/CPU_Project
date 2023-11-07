@@ -32,8 +32,8 @@ architecture RTL of cpu is
     component control_unit
         port(
             instruction_vector                 : in  std_logic_vector(INSTRUCTION_SIZE - 1 downto 0);
-            operand1                           : out std_logic_vector(DATA_SIZE - 1 downto 0);
-            operand2                           : out std_logic_vector(DATA_SIZE - 1 downto 0);
+            operand1                           : out std_logic_vector(BYTE_SIZE - 1 downto 0);
+            operand2                           : out std_logic_vector(BYTE_SIZE - 1 downto 0);
             alu_selector                       : out std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
             register_address_read_1            : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
             register_address_read_2            : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
@@ -136,9 +136,9 @@ architecture RTL of cpu is
     -- Output operand from the register for the RAM address
     signal register_operand_3                                                        : std_logic_vector(DATA_SIZE - 1 downto 0);
     -- Output operand from the control unit for the ALU and RAM
-    signal cu_operand_1                                                              : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal cu_operand_1                                                              : std_logic_vector(BYTE_SIZE - 1 downto 0);
     -- Output operand from the control unit for the ALU
-    signal cu_operand_2                                                              : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal cu_operand_2                                                              : std_logic_vector(BYTE_SIZE - 1 downto 0);
     -- Selector for the ALU
     signal alu_selector                                                              : std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
     -- Result flags after process from the ALU
@@ -170,8 +170,6 @@ architecture RTL of cpu is
     signal update_one_flag                    : std_logic;
     -- Uses the first register as an operand for the ALU or to load in the RAM
     signal use_register_1                     : std_logic;
-    -- Uses the second register as an operand for the ALU or to load in the RAM
-    signal use_register_2                     : std_logic;
     -- Uses the register output as register input
     signal use_register_for_register          : std_logic;
     -- Uses the output of the memory as data to load in the register
@@ -199,25 +197,24 @@ architecture RTL of cpu is
 
 begin
     operand_1 <= register_operand_1 when use_register_1 = '1' else
-                 cu_operand_1;
+                cu_operand_2 & cu_operand_1;
 
-    operand_2 <= register_operand_2 when use_register_2 = '1' else
-                 cu_operand_2;
+    operand_2 <= register_operand_2;
 
     -- TODO Redo this condition for priority check
     register_load <= branching_address_output when use_branching_unit = '1' else
                      register_operand_1 when use_register_for_register = '1' else
                      ram_output when use_memory_for_register = '1' else
                      alu_output when use_alu = '1' else
-                     register_operand_1 when use_register_for_register = '1' else
-                     cu_operand_1;
+                     register_operand_1 when use_register_for_register = '1';
 
     write_register <= branch_write_register when use_branching_unit = '1' else
                       cu_write_register;
 
     branching_address_input <= register_operand_1 when use_register_for_branching_address = '1' else
-                               cu_operand_1;
+                               cu_operand_2 & cu_operand_1;
 
+    -- TODO cu_operand_3
     branching_offset <= register_operand_2 when use_register_for_branching_offset = '1' else
                         cu_operand_2;
 
@@ -251,8 +248,6 @@ begin
             update_one_flag                    => update_one_flag,
             -- Enables the first register output
             use_register_1                     => use_register_1,
-            -- Enables the second register output
-            use_register_2                     => use_register_2,
             -- Uses register as register input
             use_register_for_register => use_register_for_register,
             -- Uses the memory as register input

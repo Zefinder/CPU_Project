@@ -9,9 +9,9 @@ entity control_unit is
         -- Contains the instruction to process, 4 bytes (opcode-A-B-address)
         instruction_vector                 : in  std_logic_vector(INSTRUCTION_SIZE - 1 downto 0);
         -- First operand to give to the ALU
-        operand1                           : out std_logic_vector(DATA_SIZE - 1 downto 0);
+        operand1                           : out std_logic_vector(BYTE_SIZE - 1 downto 0);
         -- Second operand to give to the ALU
-        operand2                           : out std_logic_vector(DATA_SIZE - 1 downto 0);
+        operand2                           : out std_logic_vector(BYTE_SIZE - 1 downto 0);
         -- Selector of the ALU
         alu_selector                       : out std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
         -- Address used to read a register (sends it to the first operand of the ALU)
@@ -99,13 +99,13 @@ end entity control_unit;
 -- | Bit 0 | EN_REL_BRANCH |
 architecture RTL of control_unit is
     -- Opcode of the instruction, it has the information of the instruction and the addressing mode
-    signal instruction_opcode  : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal instruction_opcode  : std_logic_vector(BYTE_SIZE - 1 downto 0);
     -- First operand of the instruction
-    signal instruction_a       : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal instruction_a       : std_logic_vector(BYTE_SIZE - 1 downto 0);
     -- Second operand of the instruction
-    signal instruction_b       : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal instruction_b       : std_logic_vector(BYTE_SIZE - 1 downto 0);
     -- Additionnal address in the instruction
-    signal instruction_address : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal instruction_address : std_logic_vector(BYTE_SIZE - 1 downto 0);
 
     -- Signal of ALU selector
     signal alu_selector_sig : std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
@@ -113,10 +113,10 @@ architecture RTL of control_unit is
 begin
 
     alu_selector_sig    <= instruction_opcode(ALU_SEL_3) & instruction_opcode(ALU_SEL_2) & instruction_opcode(ALU_SEL_1) & instruction_opcode(ALU_SEL_0);
-    instruction_opcode  <= instruction_vector(4 * DATA_SIZE - 1 downto 3 * DATA_SIZE);
-    instruction_a       <= instruction_vector(3 * DATA_SIZE - 1 downto 2 * DATA_SIZE);
-    instruction_b       <= instruction_vector(2 * DATA_SIZE - 1 downto DATA_SIZE);
-    instruction_address <= instruction_vector(DATA_SIZE - 1 downto 0);
+    instruction_opcode  <= instruction_vector(4 * BYTE_SIZE - 1 downto 3 * BYTE_SIZE);
+    instruction_a       <= instruction_vector(3 * BYTE_SIZE - 1 downto 2 * BYTE_SIZE);
+    instruction_b       <= instruction_vector(2 * BYTE_SIZE - 1 downto BYTE_SIZE);
+    instruction_address <= instruction_vector(BYTE_SIZE - 1 downto 0);
 
     control_unit_process : process(instruction_a, instruction_b, instruction_opcode, instruction_address, alu_selector_sig) is
     begin
@@ -170,7 +170,7 @@ begin
             use_register_2 <= instruction_opcode(USE_REG_2);
 
             -- Get the address of the register to write
-            register_address_write <= instruction_address(DATA_SIZE / 2 - 1 downto 0);
+            register_address_write <= instruction_address(BYTE_SIZE / 2 - 1 downto 0);
         else
             -- The ALU is disabled
             use_alu <= '0';
@@ -207,7 +207,7 @@ begin
                 flag_address <= FLAG_C_ADDR;
 
                 -- Register write always the last part of b operator
-                register_address_write <= instruction_address(DATA_SIZE / 2 - 1 downto 0);
+                register_address_write <= instruction_address(BYTE_SIZE / 2 - 1 downto 0);
 
                 -- We use the memory output for the register input if the bit is set
                 use_memory_for_register <= instruction_opcode(USE_MEM);

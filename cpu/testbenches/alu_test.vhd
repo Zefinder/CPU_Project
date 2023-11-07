@@ -365,12 +365,12 @@ begin
                 value_c_in     := '0';
                 int_value_c_in := 0;
 
-                -- If b is at 0xFF then we add 1 to a
-                if value_b = 2 ** DATA_SIZE - 1 then
+                -- If b is at 0x100 then we add 1 to a
+                if value_b = 2 ** (DATA_SIZE / 2) * 4 then
                     value_b := 0;
 
-                    -- if a is at 0xFF then we add 1 to sel
-                    if value_a = 2 ** DATA_SIZE - 1 then
+                    -- if a is at 0x100 then we add 1 to sel
+                    if value_a = 2 ** (DATA_SIZE / 2) * 4 then
                         value_a   := 0;
                         value_sel := value_sel + 1;
                         if value_sel = 2 ** ALU_SELECTOR_SIZE then
@@ -390,7 +390,7 @@ begin
                 int_value_c_in := 1;
             end if;
 
-            --Assigning values
+            -- Assigning values
             a        <= std_logic_vector(to_unsigned(value_a, DATA_SIZE));
             b        <= std_logic_vector(to_unsigned(value_b, DATA_SIZE));
             selector <= std_logic_vector(to_unsigned(value_sel, ALU_SELECTOR_SIZE));
