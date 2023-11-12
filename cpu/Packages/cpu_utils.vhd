@@ -33,7 +33,7 @@ package cpu_utils is
     -- TODO Bit that inputs the result of the ALU in the memory
 
     constant ALU_SEL_3 : natural := 6;  -- Bit representing the fourth ALU selector bit
-    constant USE_REG_2 : natural := 5;  -- Bit representing the usage of the second register
+    constant ALU_SEL_4 : natural := 5;  -- TODO Bit representing the fifth ALU selector bit
     constant USE_REG_1 : natural := 4;  -- Bit representing the usage of the first register
     constant EN_ALU    : natural := 3;  -- Bit enabling the ALU
     constant ALU_SEL_2 : natural := 2;  -- Bit representing the third ALU selector bit

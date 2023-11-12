@@ -13,8 +13,9 @@ architecture testbench of control_unit_test is
     component control_unit
         port(
             instruction_vector                 : in  std_logic_vector(INSTRUCTION_SIZE - 1 downto 0);
-            operand1                           : out std_logic_vector(DATA_SIZE - 1 downto 0);
-            operand2                           : out std_logic_vector(DATA_SIZE - 1 downto 0);
+            operand1                           : out std_logic_vector(BYTE_SIZE - 1 downto 0);
+            operand2                           : out std_logic_vector(BYTE_SIZE - 1 downto 0);
+            operand3                           : out std_logic_vector(BYTE_SIZE - 1 downto 0);
             alu_selector                       : out std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
             register_address_read_1            : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
             register_address_read_2            : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
@@ -24,7 +25,6 @@ architecture testbench of control_unit_test is
             use_alu                            : out std_logic;
             update_one_flag                    : out std_logic;
             use_register_1                     : out std_logic;
-            use_register_2                     : out std_logic;
             use_register_for_register          : out std_logic;
             use_memory_for_register            : out std_logic;
             use_branching_unit                 : out std_logic;
@@ -41,8 +41,9 @@ architecture testbench of control_unit_test is
     for all : control_unit use entity work.control_unit(RTL);
 
     signal instruction_vector        : std_logic_vector(INSTRUCTION_SIZE - 1 downto 0) := (x"00", x"12", x"34", x"56");
-    signal operand1                  : std_logic_vector(DATA_SIZE - 1 downto 0);
-    signal operand2                  : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal operand1                  : std_logic_vector(BYTE_SIZE - 1 downto 0);
+    signal operand2                  : std_logic_vector(BYTE_SIZE - 1 downto 0);
+    signal operand3                  : std_logic_vector(BYTE_SIZE - 1 downto 0);
     signal alu_selector              : std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
     signal register_address_read_1   : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
     signal register_address_read_2   : std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
@@ -52,7 +53,6 @@ architecture testbench of control_unit_test is
     signal use_alu                   : std_logic;
     signal update_one_flag           : std_logic;
     signal use_register_1            : std_logic;
-    signal use_register_2            : std_logic;
     signal use_register_for_register : std_logic;
 
     signal use_memory_for_register            : std_logic;
@@ -71,6 +71,7 @@ begin
             instruction_vector                 => instruction_vector,
             operand1                           => operand1,
             operand2                           => operand2,
+            operand3                           => operand3,
             alu_selector                       => alu_selector,
             register_address_read_1            => register_address_read_1,
             register_address_read_2            => register_address_read_2,
@@ -80,8 +81,7 @@ begin
             use_alu                            => use_alu,
             update_one_flag                    => update_one_flag,
             use_register_1                     => use_register_1,
-            use_register_2                     => use_register_2,
-            use_register_for_register => use_register_for_register,
+            use_register_for_register          => use_register_for_register,
             use_memory_for_register            => use_memory_for_register,
             use_branching_unit                 => use_branching_unit,
             use_branching_offset               => use_branching_offset,
@@ -94,13 +94,13 @@ begin
         );
 
     control_unit_process_test : process is
-        constant instruction_a       : std_logic_vector(DATA_SIZE - 1 downto 0) := x"12";
-        constant instruction_b       : std_logic_vector(DATA_SIZE - 1 downto 0) := x"34";
-        constant instruction_address : std_logic_vector(DATA_SIZE - 1 downto 0) := x"56";
+        constant instruction_a       : std_logic_vector(BYTE_SIZE - 1 downto 0) := x"12";
+        constant instruction_b       : std_logic_vector(BYTE_SIZE - 1 downto 0) := x"34";
+        constant instruction_address : std_logic_vector(BYTE_SIZE - 1 downto 0) := x"56";
 
         variable opcode_variable        : natural := 0;
-        variable opcode_variable_vector : std_logic_vector(DATA_SIZE - 1 downto 0);
-        variable instruction_opcode     : std_logic_vector(DATA_SIZE - 1 downto 0);
+        variable opcode_variable_vector : std_logic_vector(BYTE_SIZE - 1 downto 0);
+        variable instruction_opcode     : std_logic_vector(BYTE_SIZE - 1 downto 0);
 
         variable alu_selector_variable  : std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
         variable flag_selector_variable : std_logic_vector(FLAG_SELECTOR_SIZE - 1 downto 0);
@@ -108,8 +108,8 @@ begin
         wait for 5 ns;
 
         -- Assert values
-        instruction_opcode     := instruction_vector(4 * DATA_SIZE - 1 downto 3 * DATA_SIZE);
-        opcode_variable_vector := std_logic_vector(to_unsigned(opcode_variable, DATA_SIZE));
+        instruction_opcode     := instruction_vector(4 * BYTE_SIZE - 1 downto 3 * BYTE_SIZE);
+        opcode_variable_vector := std_logic_vector(to_unsigned(opcode_variable, BYTE_SIZE));
         alu_selector_variable  := instruction_opcode(ALU_SEL_3) & instruction_opcode(ALU_SEL_2) & instruction_opcode(ALU_SEL_1) & instruction_opcode(ALU_SEL_0);
         flag_selector_variable := instruction_opcode(FL_SEL_1) & instruction_opcode(FL_SEL_0);
 
@@ -121,6 +121,9 @@ begin
 
         assert operand2 = instruction_b
         report print_error("Wrong second ALU operand", instruction_b, operand2) severity error;
+        
+        assert operand3 = instruction_address
+        report print_error("Wrong second ALU operand", instruction_address, operand2) severity error;
 
         assert alu_selector = alu_selector_variable
         report print_error("Wrong ALU selector", alu_selector_variable, alu_selector) severity error;
@@ -165,9 +168,6 @@ begin
             assert use_register_1 = instruction_opcode(USE_REG_1)
             report print_bit_error("Using first register as ALU input must be off", instruction_opcode(USE_REG_1), use_register_1) severity error;
 
-            assert use_register_2 = instruction_opcode(USE_REG_2)
-            report print_bit_error("Using second register as ALU input must be off", instruction_opcode(USE_REG_2), use_register_2) severity error;
-
             assert use_branching_unit = '0'
             report print_bit_error("Branching unit must be disabled for ALU", '0', use_branching_unit) severity error;
 
@@ -187,17 +187,14 @@ begin
             assert flag_address = FLAG_C_ADDR
             report print_error("Wrong flag address for ALU", FLAG_C_ADDR, flag_address) severity error;
 
-            assert register_address_write = instruction_address(DATA_SIZE / 2 - 1 downto 0)
-            report print_error("Wrong register write address for ALU", instruction_address(DATA_SIZE / 2 - 1 downto 0), register_address_write) severity error;
+            assert register_address_write = instruction_address(BYTE_SIZE / 2 - 1 downto 0)
+            report print_error("Wrong register write address for ALU", instruction_address(BYTE_SIZE / 2 - 1 downto 0), register_address_write) severity error;
         else
             assert use_alu = '0'
             report print_bit_error("ALU must be disabled when not ALU", '0', use_alu) severity error;
 
             assert use_register_1 = '0'
             report print_bit_error("Using first register as ALU input must be off when not ALU", '0', use_register_1) severity error;
-
-            assert use_register_2 = '0'
-            report print_bit_error("Using second register as ALU input must be off when not ALU", '0', use_register_2) severity error;
 
             if instruction_opcode(EN_BRANCH) = '1' then
                 assert use_branching_unit = '1'
@@ -239,20 +236,20 @@ begin
                 assert flag_address = FLAG_C_ADDR
                 report print_error("Wrong flag address for storing", FLAG_C_ADDR, flag_address) severity error;
 
-                assert register_address_write = instruction_address(DATA_SIZE / 2 - 1 downto 0)
-                report print_error("Wrong register write address for storing", instruction_b(DATA_SIZE / 2 - 1 downto 0), register_address_write) severity error;
+                assert register_address_write = instruction_address(BYTE_SIZE / 2 - 1 downto 0)
+                report print_error("Wrong register write address for storing", instruction_b(BYTE_SIZE / 2 - 1 downto 0), register_address_write) severity error;
             end if;
         end if;
 
         -- Update opcode
-        if opcode_variable = 2 ** DATA_SIZE - 1 then
+        if opcode_variable = 2 ** BYTE_SIZE - 1 then
             report "End of tests" severity note;
             wait;
         else
             opcode_variable := opcode_variable + 1;
         end if;
 
-        instruction_vector(4 * DATA_SIZE - 1 downto 3 * DATA_SIZE) <= std_logic_vector(to_unsigned(opcode_variable, DATA_SIZE));
+        instruction_vector(4 * BYTE_SIZE - 1 downto 3 * BYTE_SIZE) <= std_logic_vector(to_unsigned(opcode_variable, BYTE_SIZE));
     end process control_unit_process_test;
 
 end architecture testbench;

@@ -9,7 +9,7 @@ entity branching_unit is
         -- Branch address to maybe update before outputing it
         branching_address      : in  std_logic_vector(DATA_SIZE - 1 downto 0);
         -- Offset to apply to the branching address
-        offset                 : in  std_logic_vector(DATA_SIZE - 1 downto 0);
+        offset                 : in  std_logic_vector(BYTE_SIZE - 1 downto 0);
         -- Uses the offset to modify the branching address
         use_offset             : in  std_logic;
         -- Flag in to check

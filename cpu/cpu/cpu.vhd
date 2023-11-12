@@ -34,6 +34,7 @@ architecture RTL of cpu is
             instruction_vector                 : in  std_logic_vector(INSTRUCTION_SIZE - 1 downto 0);
             operand1                           : out std_logic_vector(BYTE_SIZE - 1 downto 0);
             operand2                           : out std_logic_vector(BYTE_SIZE - 1 downto 0);
+            operand3                           : out std_logic_vector(BYTE_SIZE - 1 downto 0);
             alu_selector                       : out std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
             register_address_read_1            : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
             register_address_read_2            : out std_logic_vector(REGISTER_SELECTOR_SIZE - 1 downto 0);
@@ -43,7 +44,6 @@ architecture RTL of cpu is
             use_alu                            : out std_logic;
             update_one_flag                    : out std_logic;
             use_register_1                     : out std_logic;
-            use_register_2                     : out std_logic;
             use_register_for_register          : out std_logic;
             use_memory_for_register            : out std_logic;
             use_branching_unit                 : out std_logic;
@@ -111,7 +111,7 @@ architecture RTL of cpu is
     component branching_unit
         port(
             branching_address      : in  std_logic_vector(DATA_SIZE - 1 downto 0);
-            offset                 : in  std_logic_vector(DATA_SIZE - 1 downto 0);
+            offset                 : in  std_logic_vector(BYTE_SIZE - 1 downto 0);
             use_offset             : in  std_logic;
             flag                   : in  std_logic;
             is_inverted_test       : in  std_logic;
@@ -139,6 +139,8 @@ architecture RTL of cpu is
     signal cu_operand_1                                                              : std_logic_vector(BYTE_SIZE - 1 downto 0);
     -- Output operand from the control unit for the ALU
     signal cu_operand_2                                                              : std_logic_vector(BYTE_SIZE - 1 downto 0);
+    -- Output operand from the control unit for the ALU
+    signal cu_operand_3                                                              : std_logic_vector(BYTE_SIZE - 1 downto 0);
     -- Selector for the ALU
     signal alu_selector                                                              : std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
     -- Result flags after process from the ALU
@@ -160,7 +162,7 @@ architecture RTL of cpu is
     -- Branching address as branching unit output
     signal branching_address_output                                                  : std_logic_vector(DATA_SIZE - 1 downto 0);
     -- Data used as offset for branching address
-    signal branching_offset                                                          : std_logic_vector(DATA_SIZE - 1 downto 0);
+    signal branching_offset                                                          : std_logic_vector(BYTE_SIZE - 1 downto 0);
 
     -- Output of the flags
     signal flag_output                        : std_logic;
@@ -215,8 +217,9 @@ begin
                                cu_operand_2 & cu_operand_1;
 
     -- TODO cu_operand_3
-    branching_offset <= register_operand_2 when use_register_for_branching_offset = '1' else
-                        cu_operand_2;
+    
+    branching_offset <= register_operand_2(BYTE_SIZE - 1 downto 0) when use_register_for_branching_offset = '1' else
+                        cu_operand_3;
 
     output <= alu_output;
 
@@ -230,6 +233,8 @@ begin
             operand1                           => cu_operand_1,
             -- Second operand for the ALU
             operand2                           => cu_operand_2,
+            -- Second operand for the ALU
+            operand3                           => cu_operand_3,
             -- Selector of the ALU
             alu_selector                       => alu_selector,
             -- First address for the register to output

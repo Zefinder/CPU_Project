@@ -12,6 +12,8 @@ entity control_unit is
         operand1                           : out std_logic_vector(BYTE_SIZE - 1 downto 0);
         -- Second operand to give to the ALU
         operand2                           : out std_logic_vector(BYTE_SIZE - 1 downto 0);
+        -- Third operand to give to the ALU
+        operand3                           : out std_logic_vector(BYTE_SIZE - 1 downto 0);
         -- Selector of the ALU
         alu_selector                       : out std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
         -- Address used to read a register (sends it to the first operand of the ALU)
@@ -30,8 +32,6 @@ entity control_unit is
         update_one_flag                    : out std_logic;
         -- Uses the content of a register and outputs it to the first output (specified by __register_address_read_1__)
         use_register_1                     : out std_logic;
-        -- Uses the content of a register and outputs it to the second output (specified by __register_address_read_2__)
-        use_register_2                     : out std_logic;
         -- Uses the register output as register input
         use_register_for_register          : out std_logic;
         -- Uses the content of the memory cell for the input of the register bank (specified by __memory_address_read__)
@@ -55,7 +55,7 @@ entity control_unit is
     );
 end entity control_unit;
 
--- Division of opcode (instruction[7;0])
+-- Division of opcode (instruction_vector[31;24])
 -- 
 -- ## For the ALU:
 -- TODO Enable putting in memory
@@ -64,7 +64,7 @@ end entity control_unit;
 -- | :----------: | :------: |
 -- | Bit 7 | UNUSED |
 -- | Bit 6 | ALU_SEL_3 |
--- | Bit 5 | USE_REG_2 |
+-- | Bit 5 | USELESS (ALU_SEL_4) |
 -- | Bit 4 | USE_REG_1 |
 -- | Bit 3 | EN_ALU (Always 1) |
 -- | Bit 2 | ALU_SEL_2 |
@@ -72,7 +72,7 @@ end entity control_unit;
 -- | Bit 0 | ALU_SEL_0 |
 --
 -- ## For non-branch instructions
--- TODO Add register offset
+-- TODO Add register offset (use speacial opcode)
 --
 -- | Bit position | Function |
 -- | :----------: | :------: |
@@ -106,7 +106,6 @@ architecture RTL of control_unit is
     signal instruction_b       : std_logic_vector(BYTE_SIZE - 1 downto 0);
     -- Additionnal address in the instruction
     signal instruction_address : std_logic_vector(BYTE_SIZE - 1 downto 0);
-
     -- Signal of ALU selector
     signal alu_selector_sig : std_logic_vector(ALU_SELECTOR_SIZE - 1 downto 0);
 
@@ -126,6 +125,7 @@ begin
 
         operand1 <= instruction_a;
         operand2 <= instruction_b;
+        operand3 <= instruction_address;
 
         register_address_read_1 <= instruction_a(REGISTER_SELECTOR_SIZE - 1 downto 0);
         register_address_read_2 <= instruction_b(REGISTER_SELECTOR_SIZE - 1 downto 0);
@@ -166,9 +166,6 @@ begin
             -- We use the first register output if the bit is set
             use_register_1 <= instruction_opcode(USE_REG_1);
 
-            -- We use the second register output if the bit is set
-            use_register_2 <= instruction_opcode(USE_REG_2);
-
             -- Get the address of the register to write
             register_address_write <= instruction_address(BYTE_SIZE / 2 - 1 downto 0);
         else
@@ -177,7 +174,6 @@ begin
 
             -- Not use register for alu
             use_register_1 <= '0';
-            use_register_2 <= '0';
 
             -- We check if it is a branch instruction
             if instruction_opcode(EN_BRANCH) = '1' then

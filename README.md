@@ -198,21 +198,21 @@ There are a few things to know to fully understand how to write assembly for thi
 Each bit in the opcode means something for the operation. Changing the opcode can lead to a complete other operation (like from `MOV` *(0b01000000)* to `BEQ` *(0b01000010)* changing the bit 1) or to another addressing mode (like for `MOV` *0b01000000* and *0b01100000*). For more details about all instructions possible, see *Instruction map*. For more details about addressing modes, see *Addressing mode* (it's all pretty logic).
 
 All opcode specifications are detailed in the table and explanations below:
-|           | ALU operations |     | Branch operation |     | Store operation |
-| :-------: | :------------: | --- | :--------------: | --- | :-------------: |
-| **Bit 7** |     UNUSED     |     |    FLAG_SEL_1    |     |     STR_MEM     |
-| **Bit 6** |   ALU_SEL_3    |     |    FLAG_SEL_0    |     |     STR_REG     |
-| **Bit 5** |   USE_REG_2    |     |  USE_REG_OFFSET  |     |     USE_MEM     |
-| **Bit 4** |   USE_REG_1    |     |   USE_REG_ADDR   |     |   MEM_OFFSET    |
-| **Bit 3** |   EN_ALU (1)   |     |    EN_ALU (0)    |     |   EN_ALU (0)    |
-| **Bit 2** |   ALU_SEL_2    |     |     INV_FLAG     |     |     UNUSED      |
-| **Bit 1** |   ALU_SEL_1    |     |  EN_BRANCH (1)   |     |  EN_BRANCH (0)  |
-| **Bit 0** |   ALU_SEL_0    |     |  EN_REL_BRANCH   |     |     USE_REG     |
+|           |   ALU operations   |     | Branch operation |     | Store operation |
+| :-------: | :----------------: | --- | :--------------: | --- | :-------------: |
+| **Bit 7** |       UNUSED       |     |    FLAG_SEL_1    |     |     STR_MEM     |
+| **Bit 6** |     ALU_SEL_3      |     |    FLAG_SEL_0    |     |     STR_REG     |
+| **Bit 5** | UNUSED (ALU_SEL_4) |     |  USE_REG_OFFSET  |     |     USE_MEM     |
+| **Bit 4** |     USE_REG_1      |     |   USE_REG_ADDR   |     |   MEM_OFFSET    |
+| **Bit 3** |     EN_ALU (1)     |     |    EN_ALU (0)    |     |   EN_ALU (0)    |
+| **Bit 2** |     ALU_SEL_2      |     |     INV_FLAG     |     |     UNUSED      |
+| **Bit 1** |     ALU_SEL_1      |     |  EN_BRANCH (1)   |     |  EN_BRANCH (0)  |
+| **Bit 0** |     ALU_SEL_0      |     |  EN_REL_BRANCH   |     |     USE_REG     |
 
 Bit names have pretty self-explanatory names but it's always good to be sure of what you are dealing with. Note that this is a little explanation, for a complete one please read the pdf that will arrive maybe someday or read the code!
 - ALU_SEL: Selector of the ALU - 4 bits so 16 operations, 7 calculations operations and 9 flag manipulation operations
 - EN_ALU: Enables the ALU
-- USE_REG_i: Uses a register as i-th input of the ALU
+- USE_REG_1: Uses the first register as input of the ALU
 - FLAG_SEL: Selector for flag bank - 2 bits so 4 flags (in order Carry (C), Zero (Z), Negative (N), Overflow (V))
 - EN_BRANCH: Enables the branching unit
 - USE_REG_ADDR: Uses register as address for branching (can used to branch using `PC`)
@@ -226,6 +226,8 @@ Bit names have pretty self-explanatory names but it's always good to be sure of 
 - USE_REG: Uses register as register input
 
 Yet another little remark: note that for a same category, if it can use two times a register it won't be necessarily the same! For example the ALU can use 2 registers, it is totally possible to do like `ADD R2 R0 R1`. Same thing for branching: `BCC ~R1` is the same thing as `BCC PC R1` and will branch if carry clear to `PC + R1`.
+
+**TODO CHANGE MOV BIT FOR REGISTER**
 
 ### Instruction map
 This map does not contain any information about addressing mode, for this refer to the *addressing mode* section (or the future not yet written pdf).
@@ -266,10 +268,8 @@ Here is a list of all addressing modes that are available for this instruction s
 |    Addressing mode    | Concerned opcodes                           | Example             |
 | :-------------------: | :------------------------------------------ | :------------------ |
 |       Immediate       | SEC, SEZ, SEN, SEV, CLC, CLZ, CLN, CLV, NOP | SEC                 |
-|       Constant        | ADD, SUB, MUL, AND, OR, XOR, NOT, MOV       | ADD R0 $05 $05      |
-|    First register     | ADD, SUB, MUL, AND, OR, XOR, NOT, CMP, MOV  | AND R0 R1 $00       |
-|    Second register    | ADD, SUB, MUL, AND, OR, XOR                 | MUL R2 $02 R3       |
-|     Both register     | ADD, SUB, MUL, AND, OR, XOR                 | SUB R0 R0 R1        |
+|    First constant     | ADD, SUB, MUL, AND, OR, XOR, NOT, CMP, MOV  | AND R0 $A0 R2       |
+|    First register     | ADD, SUB, MUL, AND, OR, XOR, NOT, CMP, MOV  | AND R0 R1 R3        |
 |  Absolute address\*   | BCS, BEQ, BMI, BVS, BCC, BNE, BPL, BVC      | BCS $F0             |
 |   Relative offset\*   | BCS, BEQ, BMI, BVS, BCC, BNE, BPL, BVC      | BCS ~$F0            |
 |  Relative address\*   | BCS, BEQ, BMI, BVS, BCC, BNE, BPL, BVC      | BCS PC ~$F0         |
