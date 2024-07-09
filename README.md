@@ -330,7 +330,7 @@ variable test_files_array : test_files_array_t(0 to x) := (..., new_set); -- x i
 To add tests, please refer to the previous subsubsection. I will try to make a txt file in the future so the vhdl test file remains untouched!
 
 ## How can I code with this ASM
-Do you have problems? You should go to the doctor because it's scary... There is a `assembly_udl.xml` file which is a language file for **Notepad++**. You just have to import it and you will have syntax coloring. Don't expect more for now... (Joking, I'll probably do something for vscode (hi hi hi no))
+Do you have problems? You should go to the doctor because it's scary... There is syntax highlighting for **Notepad++** and **(Neo)Vim**. You just have to import it and you will have syntax coloring. Don't expect more for now... (Joking, I'll probably do something for vscode (hi hi hi no) (unless...))
 
 ## How can I compile the ASM?
 A good question! I am currently doing a compiler with flex/yacc to parse and compile at the same time. If you want to see how it works, look in the `compiler` folder, there is everything I used to make the lexical analysis (flex), the grammar (yacc) and the compilation (bison). 
