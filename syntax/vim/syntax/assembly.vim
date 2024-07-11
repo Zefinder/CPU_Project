@@ -56,6 +56,7 @@ syn match asmInstruction	"swap"
 syn match asmComment		";.*" contains=@Spell
 
 syn match asmDirective		"\.[A-Za-z][0-9A-Za-z-_]*"
+syn match asmLabel		"[a-z_][a-z0-9_]*:"he=e-1
 
 syn case match
 
@@ -65,6 +66,7 @@ syn case match
 " The default methods for highlighting.  Can be overridden later
 hi def link asmComment		Comment
 hi def link asmDirective	Macro
+hi def link asmLabel		Label
 
 hi def link asmIdentifier	Identifier
 hi def link asmNumber		Number
